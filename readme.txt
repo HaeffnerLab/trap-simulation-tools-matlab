@@ -1,4 +1,32 @@
+1. Introduction
+---------------
+
 This package is used to read and post-process electrostatic simulations of ion trap potentials. 
+
+Before you use this package you must use a numerical electrostatics solver which returns the potentials 
+of all the electrodes of a trap. These potentials of all electrodes are stored in a text file with format:
+
+X1 Y1 Z1 V1
+...
+XN YN ZN VN
+
+You can find example simulations under eurotrap-pt1.txt etc. These were produced using Kilian Singer's 
+BEMsolver package. 
+
+2. Preliminaries and naming conventions
+---------------------------------------
+
+We have adapted this library to use with surface electrode traps. You should be bale to use it with any 
+other trap geometry. Our convention for numbering the trap electrodes is: 
+  a. Each trap has N electrodes and one ground electrode (the RF electrode is included to the N)
+  b. For a linear segmented trap We start counting on the lower left corner. The lower left DC electrode 
+     is 1. As you move up along the axis (staying on the same side of the RF rail you count up). When you 
+     reach the top, you cross to the right side of the RF rail and start counting at the bottom. When you 
+     reach the top, you cross to the inside of the RF rail and count DC electrodes from bottom to top. When 
+     you are done counting all the DCs, you count the RF electrodes.
+
+3. Instructions 
+---------------
 
 Day-to-day usage will only involve messing around with analyze_trap,  project_parameters, and set_voltages. 
 You will occasionally need to dive into the lower level functions.

@@ -92,14 +92,13 @@ for el = 1:(NUM_ELECTRODES)
             % old command 12-10-2013: eval(sprintf('datout.%s = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);',str));
         end
     end
-  end% was joined with elseif 04/28/2014
-  if data.trapConfiguration.manualElectrodes(el)% was elseif 04/28/2014
+  elseif data.trapConfiguration.manualElectrodes(el)
     if regenerate,
         data_loc = data;
         data_loc.trapConfiguration.manualElectrodes(el) = 1;
         multipoleDCVoltages = zeros(1,NUM_ELECTRODES);
         manualDCVoltages = zeros(1,NUM_ELECTRODES);
-        multipoleDCVoltages(el)  = 1;
+        manualDCVoltages(el)  = 1;
         Vdc = dc_potential(data_loc,multipoleDCVoltages,manualDCVoltages,E(1),E(2),E(3),x,y,z);
         %plot_potential(Vdc,Irf,Jrf,Krf,data.grid,'1d plots',sprintf('El. %i DC Potential',el),'V (Volt)');
         Q = spher_harm_exp(Vdc,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);

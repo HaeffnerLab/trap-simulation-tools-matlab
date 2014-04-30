@@ -31,7 +31,7 @@ function  out = post_process_trap(data,operation,dcplot,rfplot,pseudpotplot,trap
 %   What kind of plots to make for total trapping potential. Takes value in 
 %   ('no plots', '2d plots','1d plots','2d and 1d plots') 
 % varargin: 
-%   accepts two optional arguments passed to plotpot, 
+%   accepts two optional arguments passed to plot_potential, 
 %   varargin is used to save pdf figures of plots
 %   outPath: path to save figures to. This is usually set to matDataPath
 %   pathSuffix: suffix to add to outPath
@@ -60,21 +60,21 @@ r0 = data.trapConfiguration.r0;                                            % len
 V0 = mass*(2*pi*Omega)^2*(r0*1e-3)^2/qe;                                   % god given voltage in SI 
 % end Intitalization
 %% Check RF potential
-[Irf Jrf Krf] = findsaddle(data.trapConfiguration.EL_RF,X,Y,Z,2,Zval,'RF potential in post_process_trap', true);
+[Irf Jrf Krf] = find_saddle(data.trapConfiguration.EL_RF,X,Y,Z,2,Zval,'RF potential in post_process_trap', true);
 fprintf('RF saddle indices: %d,%d,%d\n',Irf,Jrf,Krf);
 pause;
 warn('RF',data.trapConfiguration.EL_RF,Irf,Jrf,Krf);
 Vrf = RFampl*data.trapConfiguration.EL_RF;
-plotpot(Vrf,Irf,Jrf,Krf,grid,rfplot,'RF potential','V_{rf} (Volt)',varargin);
+plot_potential(Vrf,Irf,Jrf,Krf,grid,rfplot,'RF potential','V_{rf} (Volt)',varargin);
 % end check RF potential
 %% Check DC potential 
 if ~isempty(data.trapInstance.Efield),                                     % check if the initial guess for E is ok
     EE = data.trapInstance.Efield;
     manualVoltages = 0*dcVoltages;
-    Udc = dcpotential(data,dcVoltages,manualVoltages,EE(1),EE(2),EE(3),x,y,z);
+    Udc = dc_potential(data,dcVoltages,manualVoltages,EE(1),EE(2),EE(3),x,y,z);
     % DC parameters                                                            
-    [Idum Jdum Kdum] =  findsaddle(Udc,X,Y,Z,3,Zval);
-    %plotpot(Udc,Idum,Jdum,Kdum,grid,dcplot,'DC potential (stray field included)','U_{dc} (Volt)');
+    [Idum Jdum Kdum] =  find_saddle(Udc,X,Y,Z,3,Zval);
+    %plot_potential(Udc,Idum,Jdum,Kdum,grid,dcplot,'DC potential (stray field included)','U_{dc} (Volt)');
     if (warn('DC',Udc,Idum,Jdum,Kdum))&&(~strcmp(operation,'analyzeTrap')), 
         data.trapInstance.Efield = []; 
         isempty(data.trapInstance.Efield)
@@ -83,7 +83,7 @@ end
 % need to restore Ex,Ey,Ez to zero for d_e to run properly
 % remove % Udc = CalcVDC(data,scale*dcVoltages,0,0,0,NUM_DC,NUM_Center,x,y,z,truncVoltages,RF_offset);
 Ex = 0; Ey = 0; Ez = 0;
-Udc = dcpotential(data,dcVoltages,0*dcVoltages,Ex,Ey,Ez,x,y,z);
+Udc = dc_potential(data,dcVoltages,0*dcVoltages,Ex,Ey,Ez,x,y,z);
 
 if strcmp(operation,'findEfield'),                                         % this option means find stray field                                                      
     %E0 = 1e-3*[-470; -750; 24];                                           % a pretty old initial guess for Sankar's paper
@@ -95,10 +95,10 @@ if strcmp(operation,'findEfield'),                                         % thi
             dist0 = d_e(E0);
             % leave until fixed by nikos % Vdum = VDC1(scale*(W-Hor),scale*(N+Hor),scale*(Cnt+Ver),E0(1),E0(2),E0(3));
             % remove % Vdum = CalcVDC(data,scale*dcVoltages,E0(1),E0(2),E0(3),NUM_DC,NUM_Center,x,y,z,truncVoltages,RF_offset);
-            Vdum = dcpotential(data,dcVoltages,0*dcVoltages,E0(1),E0(2),E(3),x,y,z);
-            [Idum Jdum Kdum] =  findsaddle(Vdum,X,Y,Z,3,Zval);
+            Vdum = dc_potential(data,dcVoltages,0*dcVoltages,E0(1),E0(2),E(3),x,y,z);
+            [Idum Jdum Kdum] =  find_saddle(Vdum,X,Y,Z,3,Zval);
             warn('DC',Vdum,Idum,Jdum,Kdum);
-            plotpot(Vdum,Irf,Jrf,Krf,grid,dcplot,'Initial guess for DC potential','U_{dc} (Volt)',varargin);
+            plot_potential(Vdum,Irf,Jrf,Krf,grid,dcplot,'Initial guess for DC potential','U_{dc} (Volt)',varargin);
             st = input('Happy (y/n)?\n','s');
             if strcmp(st,'y'), break; end
         end
@@ -107,10 +107,10 @@ if strcmp(operation,'findEfield'),                                         % thi
         dist0 = d_e(E0);
         % leave until fixed by nikos % Vdum = VDC1(scale*(W-Hor),scale*(N+Hor),scale*(Cnt+Ver),E0(1),E0(2),E0(3));
         % remove % Vdum = CalcVDC(data,scale*dcVoltages,E0(1),E0(2),E0(3),NUM_DC,NUM_Center,x,y,z,truncVoltages,RF_offset);
-        Vdum = dcpotential(data,dcVoltages,0*dcVoltages,E0(1),E0(2),E0(3),x,y,z);
-        [Idum Jdum Kdum] =  findsaddle(Vdum,X,Y,Z,3,Zval);
+        Vdum = dc_potential(data,dcVoltages,0*dcVoltages,E0(1),E0(2),E0(3),x,y,z);
+        [Idum Jdum Kdum] =  find_saddle(Vdum,X,Y,Z,3,Zval);
         warn('DC',Vdum,Idum,Jdum,Kdum);
-        plotpot(Vdum,Idum,Jdum,Kdum,grid,dcplot,'Initial guess for DC potential','U_{dc} (Volt)',varargin);
+        plot_potential(Vdum,Idum,Jdum,Kdum,grid,dcplot,'Initial guess for DC potential','U_{dc} (Volt)',varargin);
     end
     fprintf('Initial guess for stray field: ( %G, %G, %G) V/m.\n',1e3*E0(1),1e3*E0(2),1e3*E0(3));
     fprintf('Miscompensation in the presence of this field: %G micron.\n\n',1e3*dist0);
@@ -144,10 +144,10 @@ elseif strcmp(operation,'findCompensation'),                               % thi
         cmpdcVoltages(2*ndc2+1) = dcVoltages(2*ndc2+1)+VC0;
         % leave until fixed by nikos % Vdum = VDC1(scale*(W-HC0),scale*(N+HC0),scale*(Cnt+VC0),E(1),E(2),E(3));
         % remove % Vdum = CalcVDC(data,scale*dcVoltages,E0(1),E0(2),E0(3),NUM_DC,NUM_Center,x,y,z,truncVoltages,RF_offset);
-        Vdum = dcpotential(data,compdcVoltages,0*compdcVoltages,E(1),E(2),E(3),x,y,z);
-        [Idum Jdum Kdum] =  findsaddle(Vdum,X,Y,Z,3,Zval);
+        Vdum = dc_potential(data,compdcVoltages,0*compdcVoltages,E(1),E(2),E(3),x,y,z);
+        [Idum Jdum Kdum] =  find_saddle(Vdum,X,Y,Z,3,Zval);
         warn('DC',Vdum,Idum,Jdum,Kdum);
-        plotpot(Vdum,Idum,Jdum,Kdum,grid,'1d plot','Initial guess for DC potential','U_{dc} (Volt)');
+        plot_potential(Vdum,Idum,Jdum,Kdum,grid,'1d plot','Initial guess for DC potential','U_{dc} (Volt)');
         st = input('Happy (y/n)?\n','s');
         if strcmp(st,'y'), break; end
     end
@@ -183,26 +183,26 @@ end
 %%
 % By this point you should have electrode voltages and dc potential values
 % that you can directly plug into the auxiliary functions in order to
-% analyze the trap instance. Auxiliary functions are exactsaddle, pfit, and
-% exactsaddle
+% analyze the trap instance. Auxiliary functions are exact_saddle, pfit, and
+% exact_saddle
 %% Analyze trap instance 
 % remove % Udc = CalcVDC(data,scale*dcVoltages,E(1),E(2),E(3),NUM_DC,NUM_Center,x,y,z,truncVoltages,RF_offset);
-Udc = dcpotential(data,dcVoltages,0*dcVoltages,E(1),E(2),E(3),x,y,z);
-[XRF YRF ZRF] = exactsaddle(data.trapConfiguration.EL_RF,X,Y,Z,2,Zval);                                  % find secular frequencies etc.
-[XDC YDC ZDC] = exactsaddle(Udc,X,Y,Z,3,Zval);
+Udc = dc_potential(data,dcVoltages,0*dcVoltages,E(1),E(2),E(3),x,y,z);
+[XRF YRF ZRF] = exact_saddle(data.trapConfiguration.EL_RF,X,Y,Z,2,Zval);                                  % find secular frequencies etc.
+[XDC YDC ZDC] = exact_saddle(Udc,X,Y,Z,3,Zval);
 fprintf('RF saddle: (%f %f %f)\nDC saddle (%f %f %f).\n',XRF,YRF,ZRF,XDC,YDC,ZDC);
 
-plotpot(Udc,Irf,Jrf,Krf,grid,dcplot,'Compensated DC potential','U_{dc} (V)',varargin);
-[IDC JDC KDC] = findsaddle(Udc,X,Y,Z,3,Zval);
+plot_potential(Udc,Irf,Jrf,Krf,grid,dcplot,'Compensated DC potential','U_{dc} (V)',varargin);
+[IDC JDC KDC] = find_saddle(Udc,X,Y,Z,3,Zval);
 
 [fx fy fz theta Depth rx ry rz xe ye ze U] = pfit(E(1),E(2),E(3));
 
-Qrf = spherharmxp(Vrf,XRF,YRF,ZRF,7,X,Y,Z);                                % find RF multipole coefficients
+Qrf = spher_harm_exp(Vrf,XRF,YRF,ZRF,7,X,Y,Z);                                % find RF multipole coefficients
 
 if sqrt((XRF-XDC)^2+(YRF-YDC)^2+(ZRF-ZDC)^2)>0.008, 
-    Qdc = spherharmxp(Udc,XRF,YRF,ZRF,7,X,Y,Z); 
+    Qdc = spher_harm_exp(Udc,XRF,YRF,ZRF,7,X,Y,Z); 
 else
-    Qdc = spherharmxp(Udc,XDC,YDC,ZDC,7,X,Y,Z);
+    Qdc = spher_harm_exp(Udc,XDC,YDC,ZDC,7,X,Y,Z);
 end    
 
 Arf = 2*sqrt( (3*Qrf(8))^2+(3*Qrf(9))^2 );
@@ -244,8 +244,8 @@ if strcmp(operation,'findCompensation'),
     out.trapInstance.useVer = Ver;
 end
 if qualityCheck
-    out.trapConfiguration.qualityRF = spherharmq(Vrf,Qrf,XRF,YRF,ZRF,7,X,Y,Z,'Spherical harmonic expansion: RF potential error');
-    out.trapConfiguration.qualityDC = spherharmq(Udc,Qdc,XDC,YDC,ZDC,7,X,Y,Z,'Spherical harmonic expansion: DC potential error');
+    out.trapConfiguration.qualityRF = spher_harm_qlt(Vrf,Qrf,XRF,YRF,ZRF,7,X,Y,Z,'Spherical harmonic expansion: RF potential error');
+    out.trapConfiguration.qualityDC = spher_harm_qlt(Udc,Qdc,XDC,YDC,ZDC,7,X,Y,Z,'Spherical harmonic expansion: DC potential error');
 end
 print_underlined_message('stop_','post_process_trap');
 
@@ -259,8 +259,8 @@ print_underlined_message('stop_','post_process_trap');
         dm = Ei;
         E1 = dm(1); E2 = dm(2); E3 = dm(3);
         Vl = Udc-E1*x-E2*y-E3*z;
-        [xrf yrf zrf] = exactsaddle(data.trapConfiguration.EL_RF,X,Y,Z,2,Zval);
-        [xdc ydc zdc] = exactsaddle(Vl,X,Y,Z,3,Zval); 
+        [xrf yrf zrf] = exact_saddle(data.trapConfiguration.EL_RF,X,Y,Z,2,Zval);
+        [xdc ydc zdc] = exact_saddle(Vl,X,Y,Z,3,Zval); 
         f = sqrt((xrf-xdc)^2+(yrf-ydc)^2+(zrf-zdc)^2);
     end
 %%
@@ -274,8 +274,8 @@ print_underlined_message('stop_','post_process_trap');
         ex = E(1); ey = E(2); ez = E(3);
         wc = scale*(W-hc); nc = scale*(N+hc);  v = scale*(Cnt+vc);  
         Vl = VDC1(wc,nc,v,ex,ey,ez);
-        [xdc ydc zdc] = exactsaddle(Vl,X,Y,Z,3,Zval); 
-        [xrf yrf zrf] = exactsaddle(data.trapConfiguration.EL_RF,X,Y,Z,2,Zval);
+        [xdc ydc zdc] = exact_saddle(Vl,X,Y,Z,3,Zval); 
+        [xrf yrf zrf] = exact_saddle(data.trapConfiguration.EL_RF,X,Y,Z,2,Zval);
         f = sqrt((xrf-xdc)^2+(yrf-ydc)^2+(zdc-zdc)^2);
     end
 %%
@@ -287,18 +287,18 @@ print_underlined_message('stop_','post_process_trap');
         % find dc potential
         % keep until nikos fixes it %Vl = VDC1(w,n,cnt,ex,ey,ez);
         % remove % Vl = CalcVDC(data,scale*dcVoltages,e1,e2,e3,NUM_DC,NUM_Center,x,y,z,truncVoltages,RF_offset);
-        Vl = dcpotential(data,dcVoltages,0*dcVoltages,e1,e2,e3,x,y,z);
-        [Xdc Ydc Zdc] = exactsaddle(Vl,X,Y,Z,3,Zval);
+        Vl = dc_potential(data,dcVoltages,0*dcVoltages,e1,e2,e3,x,y,z);
+        [Xdc Ydc Zdc] = exact_saddle(Vl,X,Y,Z,3,Zval);
         
         % find pseudopotential
         [Ex,Ey,Ez] = gradient(Vrf,1e-3*grid(4),1e-3*grid(5),1e-3*grid(6));       
         Esq = Ex.^2 + Ey.^2 + Ez.^2;
         PseudoPhi = qe^2*Esq/(4*mass*Omega^2);    
-        plotpot(PseudoPhi/qe,Irf,Jrf,Krf,grid,pseudpotplot,'Pseudopotential','U_{ps} (eV)',varargin);
+        plot_potential(PseudoPhi/qe,Irf,Jrf,Krf,grid,pseudpotplot,'Pseudopotential','U_{ps} (eV)',varargin);
         
         % find total trap potential
         U = PseudoPhi+qe*Vl;     
-        plotpot(U/qe,Irf,Jrf,Krf,grid,trappotplot,'TrapPotential','U_{sec} (eV)',varargin);
+        plot_potential(U/qe,Irf,Jrf,Krf,grid,trappotplot,'TrapPotential','U_{sec} (eV)',varargin);
         
         % find trap frequencies and tilt in radial directions
         Uxy = U(Irf-3:Irf+3,Jrf-3:Jrf+3,Krf); 
@@ -328,7 +328,7 @@ print_underlined_message('stop_','post_process_trap');
             xlabel('axial direction (mm)'); ylabel('trap potential (J)');hold off; pause(0.1);
         end
         fz= (1e3/dL)*sqrt(2*p(5)/(mass))/(2*pi);
-        [Depth Xe Ye Ze] = trapdepth(U,X,Y,Z,Irf,Jrf,Krf);                
+        [Depth Xe Ye Ze] = trap_depth(U,X,Y,Z,Irf,Jrf,Krf);                
     end
 %%
     function out = normalize(in)

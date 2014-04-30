@@ -8,8 +8,8 @@
 % ion position, stray pseudofield, frequencies, axes tilt, depth, quadrupole
 % coefficients, alpha and q parameters
 
-get_trapping_field_plot = true;
-trap_knobs_plot = true;
+get_trapping_field_plot = false;
+trap_knobs_plot = false;
 data = project_parameters;
 data = import_data(data);
 data = get_trapping_field(data,get_trapping_field_plot);
@@ -25,7 +25,7 @@ data = post_process_trap(data,'analyzeTrap',dcplot,rfplot,pseudpotplot,trappotpl
 
 mesg = sprintf('The secular frequencies are: (%G, %G, %G) Hz.\n', data.trapInstance.frequency(1), data.trapInstance.frequency(2), data.trapInstance.frequency(3));
 disp(mesg);
-mesg = sprintf('The trapdepth is: %G eV \n', data.trapInstance.trapDepth);
+mesg = sprintf('The trap depth is: %G eV \n', data.trapInstance.trapDepth);
 disp(mesg);
 mesg = sprintf('The ion sits at (%G,%G,%G) micron.\n', 1e3*data.trapInstance.ionPosition(1), 1e3*data.trapInstance.ionPosition(2), 1e3*data.trapInstance.ionPosition(3));
 disp(mesg);

@@ -1,6 +1,6 @@
 This package is used to read and post-process electrostatic simulations of ion trap potentials. 
 
-Day-to-day usage will only involve messing around with analyzetrap,  project_parameters, and setvoltages. 
+Day-to-day usage will only involve messing around with analyze_trap,  project_parameters, and set_voltages. 
 You will occasionally need to dive into the lower level functions.
 _______________________________________________________________________________________________________________________
 -----------------------------------------------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ expand_field:
     
     As an option, expand_field will also compute all the potentials from the spherical harmonic coefficients and replace the 
     original values with the computed ones. This can be useful as a data smoothing step so that the algorithms which use 
-    numerical derivatives (e.g. in ppt2 for pseudopotential calculation, findsaddle, trapdepth) work better.
+    numerical derivatives (e.g. in ppt2 for pseudopotential calculation, find_saddle, trap_depth) work better.
     
 trap_knobs:
     You should not have to look inside this function, unless you are trying something new (and possibly inappropriate). 
@@ -61,10 +61,10 @@ trap_knobs:
     
 set_dc:
     You should not have to look inside this function, unless you are trying something new (and possibly inappropriate). 
-    setdc takes as inputs multipole parameters or a set of Mathieu parameters, and produces an 1-D array with the voltages
+    set_dc takes as inputs multipole parameters or a set of Mathieu parameters, and produces an 1-D array with the voltages
     you need to apply to all of the electrodes. The entries corresponding to multipole-controlled electrodes receive some 
     values. If some electrodes are under manual control (per your definition in project_parameters) these are set to zero. 
-    You can add the values to these electrodes at a higher level (as in setvoltages)
+    You can add the values to these electrodes at a higher level (as in set_voltages)
     
 post_process_trap:
     You should not have to look inside this function, unless you are trying something new (and possibly inappropriate). 
@@ -88,7 +88,7 @@ ________________________________________________________________________________
 -----------------------------------------------------------------------------------------------------------------------
 To Do:
 
-* Double check that data stiching is done correctly
+* Double check that data stiching is done correctly...OK
 
 * Double check that the electrode mapping and  multipole masking is done properly
 
@@ -98,9 +98,12 @@ To Do:
 
 * Add more plotting flags to the remaining functions
 
-* Eliminate name-space polution after ppt2
+* Eliminate name-space polution after post_process_trap
 
 * Generate a set of BEM solver test data which allow transparent tutorial/debugging
 
 * Join import_data functionality with the now defunct script for importing data from CPO
 
+* Change the length scales to micron, but keep mm for the E and U
+
+* Internally rescale to geometric mean for spher_harm_exp

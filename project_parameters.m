@@ -26,7 +26,7 @@ matDataPath = ...
                                                                            % This is where the post processed data files are stored.
 NUM_AXIS  = 21;                                                            %%%% used in import_data 
                                                                            % Number of data points per axis used in import_data
-NUM_ELECTRODES  = 22;                                                      %%%% used in import_data, get_trapping_field, expand_field, dcpotential, post_process_trap
+NUM_ELECTRODES  = 22;                                                      %%%% used in import_data, get_trapping_field, expand_field, dc_potential, post_process_trap
                                                                            % Number of non-ground electrodes, including all DCs, center, RF
 NUM_USED_ELECTRODES = 22;                                                  %%%% used in import_data
                                                                            % If the RF is not biased, set this to NUM_ELECTRODES-1, etc.
@@ -36,18 +36,19 @@ electrodeMapping = ...                                                     %%%% 
 		    6 6; 7 7; 8 8; 9 9; 10 10; ...                                 % the convention is physical electrode -> functional electrode
 		    11 11; 12 12; 13 13; 14 14; 15 15; ...                         % if electrodes 1 and 2 are combined into one electrode, then enter [1 1; 2 1; 3 2;...
 		    16 16; 17 17; 18 18; 19 19; 20 20; ...                         % if electrodes 1 and 4 are not in use (grounded), then enter [1 0; 2 1; 3 2; 4 0...
-		    21 21; 22 22];                                                 % NUM_ELECTRODES (i.e. last) is the RF electrode
-manualElectrodes = ...                                                     % used in import_data, expand_field, dcpotential
+		    21 21; 22 0];                                                 % NUM_ELECTRODES (i.e. last) is the RF electrode
+manualElectrodes = ...                                                     % used in import_data, expand_field, dc_potential
                    [0 0 0 0 0 ...                                          % NUM_ELECTRODES-1 (i.e. before the RF) is the center electrode
                     0 0 0 0 0 ...                                          % electrodeMapping determines the pairing
                     0 0 0 0 0 ...                                          % manualElectrodes determines the electrodes which are under manual voltage control. It has NUM_ELECTRODES elements
                     0 0 0 0 0 ...                                          % (i.e. they are not connected to an arbitrary voltage, not to multipole knobs, )
-                    0 0]';                                                 % all entries != 0 are under manual control, and entries = 0 are not under manual control  
+                    0 1]';                                                 % all entries != 0 are under manual control, and entries = 0 are not under manual control  
+
 if sum((electrodeMapping(:,1)>0))~=NUM_ELECTRODES
   fprintf('project_parameters warning: electrodeMapping variable does not agree with number of electrodes.\n');
 end
-if sum((electrodeMapping(:,2)>0))~=NUM_USED_ELECTRODES
-  fprintf('project_parameters warning: electrodeMapping variable does not agree with number of used electrodes.\n');
+if sum((electrodeMapping(:,2)>0))+sum(manualElectrodes)~=NUM_USED_ELECTRODES
+  fprintf('project_parameters warning: electrodeMapping and/or manualElectrodes variable does not agree with number of used electrodes.\n');
 end
 if sum(electrodeMapping(:,2).*manualElectrodes)>0
   fprintf('project_parameters warning: some electrodes are both under multipole and manual control.\n')
@@ -79,7 +80,7 @@ nMatTot = 6;                                                               %%%% 
                                                                            % files to be imported can be adjusted via nMatTot.
                                                                            % nStart: index of the trap simulation file on which you want to start importing data
                                                                            % nMatTot: number of simulation files
-scale = 1/1000;                                                            %%%% used by import_data, get_trapping_field, post_process_trap, setdc, spherharmxp
+scale = 1/1000;                                                            %%%% used by import_data, get_trapping_field, post_process_trap, set_dc, spher_harm_exp
                                                                            % UNITS: if drawing (autocad) dimensions are in microns and output in mm then
                                                                            % scale = 1/1000 if drawing is in mm, scale = 1;
 zMin = -630*scale;                                                         %%%% used in import_data, get_trapping_field

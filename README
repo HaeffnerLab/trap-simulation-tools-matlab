@@ -66,8 +66,8 @@ get_trapping_field:
     structures which BEM solver generated and creates new data structure whith a grid which is centered around 
     the position where you want to trap. You define the trapping position in project_parameters. 
     
-    At the end of get_trapping_field, the structure 'data' should contain fields such as data.trapConfiguration.X, 
-    data.trapConfiguration.EL_DC1, etc.
+    At the end of get_trapping_field, the structure 'data' should contain a field Simulatrion, with subfields such as 
+    data.Simulation.X, data.Simulation.EL_DC1, etc.
 
 expand_field:
     You should not have to look inside this function, unless you are trying something new (and possibly inappropriate). 

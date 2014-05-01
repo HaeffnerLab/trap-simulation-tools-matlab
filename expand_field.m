@@ -37,9 +37,9 @@ fprintf('expand_field: Correction of XRF: %f mm.\n',Xcorrection);
 fprintf('expand_field: Correction of YRF: %f mm.\n',Ycorrection);
 
 datout = data;
-X = normalize(data.trapConfiguration.X); 
-Y = normalize(data.trapConfiguration.Y); 
-Z = normalize(data.trapConfiguration.Z);
+X = normalize(data.Simulation.X); 
+Y = normalize(data.Simulation.Y); 
+Z = normalize(data.Simulation.Z);
 [y x z] = meshgrid(Y,X,Z);
 
 ord = zeros(1,NUM_ELECTRODES);
@@ -48,14 +48,14 @@ ord(:)=expansionOrder;
 % expand the rf about the grid center, regenerate data from the expansion
 Irf = floor(numel(X)/2); Jrf = floor(numel(Y)/2); Krf = floor(numel(Z)/2);
 Xrf = X(Irf); Yrf=Y(Jrf); Zrf=Z(Krf);
-Qrf = spher_harm_exp(data.trapConfiguration.EL_RF,Xrf,Yrf,Zrf,expansionOrder,X,Y,Z);  
-datout.trapConfiguration.EL_RF = spher_harm_cmp(Qrf,Xrf,Yrf,Zrf,expansionOrder,X,Y,Z);
-%eval(sprintf('datout.trapConfiguration.%s = spher_harm_cmp(Qrf,Xrf,Yrf,Zrf,expansionOrder,X,Y,Z);','EL_RF'));
+Qrf = spher_harm_exp(data.Simulation.EL_RF,Xrf,Yrf,Zrf,expansionOrder,X,Y,Z);  
+datout.Simulation.EL_RF = spher_harm_cmp(Qrf,Xrf,Yrf,Zrf,expansionOrder,X,Y,Z);
+%eval(sprintf('datout.Simulation.%s = spher_harm_cmp(Qrf,Xrf,Yrf,Zrf,expansionOrder,X,Y,Z);','EL_RF'));
 
 % expand the rf about its saddle point at the trapping position, save the quadrupole 
 % components 
-[Xrf Yrf Zrf] = exact_saddle(data.trapConfiguration.EL_RF,X,Y,Z,2,position);
-Qrf = spher_harm_exp(data.trapConfiguration.EL_RF,Xrf+Xcorrection,Yrf+Xcorrection,Zrf,expansionOrder,X,Y,Z);  
+[Xrf Yrf Zrf] = exact_saddle(data.Simulation.EL_RF,X,Y,Z,2,position);
+Qrf = spher_harm_exp(data.Simulation.EL_RF,Xrf+Xcorrection,Yrf+Xcorrection,Zrf,expansionOrder,X,Y,Z);  
 datout.trapConfiguration.Qrf = 2*[Qrf(8)*3 Qrf(5)/2 Qrf(9)*6 -Qrf(7)*3 -Qrf(6)*3];
 datout.trapConfiguration.thetarf = 45*(sign(Qrf(9)))-90*atan((3*Qrf(8))/(3*Qrf(9)))/pi;
 
@@ -87,8 +87,8 @@ for el = 1:(NUM_ELECTRODES)
     M1(:,el) = Q(1:(expansionOrder+1)^2);
     %max(Q(2:(expansionOrder+1)^2))
     if regenerate,
-        if isfield(data.trapConfiguration,['EL_DC' num2str(el)]),
-            data.trapConfiguration.(['EL_DC' num2str(el)]) = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);
+        if isfield(data.Simulation,['EL_DC' num2str(el)]),
+            data.Simulation.(['EL_DC' num2str(el)]) = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);
             % old command 12-10-2013: eval(sprintf('datout.%s = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);',str));
         end
     end
@@ -103,7 +103,7 @@ for el = 1:(NUM_ELECTRODES)
         Vdc = dc_potential(data_loc,multipoleDCVoltages,manualDCVoltages,E(1),E(2),E(3),x,y,z);
         %plot_potential(Vdc,Irf,Jrf,Krf,data.grid,'1d plots',sprintf('El. %i DC Potential',el),'V (Volt)');
         Q = spher_harm_exp(Vdc,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);
-        data.trapConfiguration.(['mEL_DC' num2str(el)]) = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);
+        data.Simulation.(['mEL_DC' num2str(el)]) = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);
         % old command 12-10-2013: eval(sprintf('datout.%s = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);',str));  
     end
   end

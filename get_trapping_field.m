@@ -15,6 +15,18 @@ function data = get_trapping_field(data,plottingOption)
 %
 % the consecutive data srtuctures must have overlapping
 % first and last points, i.e. pt[I].Z(31) = pt[I+1].Z(1)
+%
+% Rules:
+% *All the electrodes are assumed to be DC electrodes to begin with.
+% *The sequence for counting DC electrodes runs through left side of the RF 
+% (bottom to top), right side of the RF (bottom to top), center electrodes 
+% inside of the RF (left center, then right center), and finalLy RF. 
+% *To specify that an electrode is grounded, go to project_parameters and
+% set the corresponding parameter in electrodeMapping to 0 
+% 
+% Base code by Mike, modified by Gebhard Oct 2010. The conventions where 
+% redefined/cleaning up/combined with later developments by Nikos Jun 2013
+%
 % Nikos 2009. 
 % Cleaned 26-05-2013, 10-23-2013
 
@@ -48,88 +60,90 @@ N = sign(2*position-zLim(I)-zLim(I+1));
 if (I==1)&&(N==-1),
     % If the ion is in the first half of the first grid, just use the first grid
     d = load([sprintf('%s',path),sprintf('%s',dataNames),'_1.mat']); 
-    data = d.data;
-    noStitch = true; %wtk 12-10-2013
+    %fprintf('');% nd 04/30/2014
+    data.Simulation = d.Simulation;
+    noStitch = true;
 elseif (I==nMatTot)&&(N==1),
     % If the ion is in the second half of the last grid, just use the last grid
     d = load([sprintf('%s',path),sprintf('%s',dataNames),sprintf('_%i.mat',nMatTot)]); 
-    data = d.data;
+    data.Simulation = d.Simulation;
     noStitch = true;
 else
     % If the ion is somewhere in between
     d = load([sprintf('%s',path),sprintf('%s',dataNames),sprintf('_%i.mat',I)]); 
-    data0=d.data;
-    fieldnames(data0);
-    [dum K] = min(abs(data0.trapConfiguration.Z-position));
-    clear data0;
+    Simulation0=d.Simulation;
+    fieldnames(Simulation0);
+    [dum K] = min(abs(Simulation0.Z-position));
+    clear Simulation0;
     if N == 1,
         % pos lies closer to the next .mat-grid than the last grid 
         d = load([sprintf('%s',path),sprintf('%s',dataNames),sprintf('_%i.mat',I)]);
-        data1 = d.data;
+        Simulation1 = d.Simulation;
         d = load([sprintf('%s',path),sprintf('%s',dataNames),sprintf('_%i.mat',I+N)]); 
-        data2 = d.data;
-        [dum K] = min(abs(data1.trapConfiguration.Z-position));
-        K1 = K-floor(numel(data1.trapConfiguration.Z)/2); % these are not the neatest definitions, but ok for now
-        K2 = numel(data1.trapConfiguration.Z);    
+        Simulation2 = d.Simulation;
+        [dum K] = min(abs(Simulation1.Z-position));
+        K1 = K-floor(numel(Simulation1.Z)/2); % these are not the neatest definitions, but ok for now
+        K2 = numel(Simulation1.Z);    
         K3 = 2; 
-        K4 = K-floor(numel(data1.trapConfiguration.Z)/2);
+        K4 = K-floor(numel(Simulation1.Z)/2);
     elseif N  == -1,
         % pos lies closer to the last .mat-grid than the next grid 
         d = load([sprintf('%s',path),sprintf('%s',dataNames),sprintf('_%i.mat',I+N)]); 
-        data1 = d.data;
+        Simulation1 = d.Simulation;
         d = load([sprintf('%s',path),sprintf('%s',dataNames),sprintf('_%i.mat',I)]); 
-        data2 = d.data;
-        K1 = K+floor(numel(data1.trapConfiguration.Z)/2);
-        K2 = numel(data1.trapConfiguration.Z)-1;
+        Simulation2 = d.Simulation;
+        K1 = K+floor(numel(Simulation1.Z)/2);
+        K2 = numel(Simulation1.Z)-1;
         K3 = 1; 
-        K4 = K+floor(numel(data1.trapConfiguration.Z)/2);
+        K4 = K+floor(numel(Simulation1.Z)/2);
     else
         d = load([sprintf('%s',path),sprintf('%s',dataNames),sprintf('_%i.mat',I)]); 
-        data = d.data;
+        data.Simulation = d.Simulation;
         print_underlined_message('stop_','get_trapping_field');
         return
     end
 end
 
 if ~noStitch
-    data = data1;
+    data.Simulation = Simulation1;
     for i=K1:K2         
-        data.trapConfiguration.Z(i-K1+1)=data1.trapConfiguration.Z(i); 
-        data.trapConfiguration.EL_RF(:,:,i-K1+1) = data1.trapConfiguration.EL_RF(:,:,i);
+        data.Simulation.Z(i-K1+1) = Simulation1.Z(i); 
+        data.Simulation.EL_RF(:,:,i-K1+1) = Simulation1.EL_RF(:,:,i);
         for iii=1:(NUM_ELECTRODES)
-        if isfield(data1.trapConfiguration,['EL_DC' num2str(iii)]),
-          data.trapConfiguration.(['EL_DC' num2str(iii)])(:,:,i-K1+1) = data1.trapConfiguration.(['EL_DC' num2str(iii)])(:,:,i);
-        end
-        if isfield(data1.trapConfiguration,['mEL_DC' num2str(iii)]),        % minor logic error here: mEL_DC always exists, but it is zero if unused. if case is unnecessary. 12-10-2013
-          data.trapConfiguration.(['mEL_DC' num2str(iii)])(:,:,i-K1+1) = data1.trapConfiguration.(['mEL_DC' num2str(iii)])(:,:,i);
-        end
+            if isfield(Simulation1,['EL_DC' num2str(iii)]),
+                data.Simulation.(['EL_DC' num2str(iii)])(:,:,i-K1+1) = Simulation1.(['EL_DC' num2str(iii)])(:,:,i);
+            end
+            if isfield(Simulation1,['mEL_DC' num2str(iii)]),        % logic error here: mEL_DC always exists, but it is zero if unused. if case is unnecessary. 12-10-2013
+                data.Simulation.(['mEL_DC' num2str(iii)])(:,:,i-K1+1) = Simulation1.(['mEL_DC' num2str(iii)])(:,:,i);
+            end
         end
     end
 
     for i=K3:K4        
-        data.trapConfiguration.Z(i-K3+max(K2-K1,-1)+2)=data2.trapConfiguration.Z(i); 
-        data.trapConfiguration.EL_RF(:,:,i-K3+max(K2-K1,-1)+2) = data2.trapConfiguration.EL_RF(:,:,i); 
+        data.Simulation.Z(i-K3+max(K2-K1,-1)+2) = Simulation2.Z(i); 
+        data.Simulation.EL_RF(:,:,i-K3+max(K2-K1,-1)+2) = Simulation2.EL_RF(:,:,i); 
         for iii=1:(NUM_ELECTRODES)
-        if isfield(data2.trapConfiguration,['EL_DC' num2str(iii)]),
-          data.trapConfiguration.(['EL_DC' num2str(iii)])(:,:,i-K3+max(K2-K1,-1)+2) = data2.trapConfiguration.(['EL_DC' num2str(iii)])(:,:,i);
-        end
-        if isfield(data2.trapConfiguration,['mEL_DC' num2str(iii)]),
-          data.trapConfiguration.(['mEL_DC' num2str(iii)])(:,:,i-K3+max(K2-K1,-1)+2) = data2.trapConfiguration.(['mEL_DC' num2str(iii)])(:,:,i);
-        end
+            if isfield(Simulation2,['EL_DC' num2str(iii)]),
+                data.Simulation.(['EL_DC' num2str(iii)])(:,:,i-K3+max(K2-K1,-1)+2) = Simulation2.(['EL_DC' num2str(iii)])(:,:,i);
+            end
+            if isfield(Simulation2,['mEL_DC' num2str(iii)]),       % logic error here: mEL_DC always exists, but it is zero if unused. if case is unnecessary. 12-10-2013
+                data.Simulation.(['mEL_DC' num2str(iii)])(:,:,i-K3+max(K2-K1,-1)+2) = Simulation2.(['mEL_DC' num2str(iii)])(:,:,i);
+            end
         end 
     end
-    data.trapConfiguration.grid = [min(data.trapConfiguration.X) min(data.trapConfiguration.Y) min(data.trapConfiguration.Z) data1.trapConfiguration.grid(4) data1.trapConfiguration.grid(5) data1.trapConfiguration.grid(6)];
+    data.Simulation.grid = [min(data.Simulation.X) min(data.Simulation.Y) min(data.Simulation.Z) ...
+                            Simulation1.grid(4) Simulation1.grid(5) Simulation1.grid(6)];
 end
     
 if plottingOption,
-    midIndex = round(numel(data.trapConfiguration.Z)/2); 
+    midIndex = round(numel(data.Simulation.Z)/2); 
     for el = 1:NUM_ELECTRODES
-        plot_potential(data.trapConfiguration.(['EL_DC' num2str(el)]),...
+        plot_potential(data.Simulation.(['EL_DC' num2str(el)]),...
             midIndex,midIndex,midIndex,...
-            data.trapConfiguration.grid,2,sprintf('%i-th electrode potential',el),'Static potential (V)','','');
-        pause(0.2);
+            data.Simulation.grid,'1d plots',sprintf('%i-th electrode potential',el),'Static potential (V)','','');
+        pause;
     end
- 	plot(data.trapConfiguration.Z,'--*'); 
+ 	plot(data.Simulation.Z,'--*'); 
  	title('get_trapping_field.m check: you will see a straight line if the data was generated successfully.');
     pause
 end

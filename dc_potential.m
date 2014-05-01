@@ -23,14 +23,14 @@ function Vout = dc_potential(data,VMULT,VMAN,Ex,Ey,Ez,x,y,z)
 
     IMAN = data.trapConfiguration.manualElectrodes;
     NUM_ELECTRODES = data.trapConfiguration.NUM_ELECTRODES;
-    Vout = zeros(size(data.trapConfiguration.EL_DC1));  
+    Vout = zeros(size(data.Simulation.EL_DC1));  
     for ii = 1:NUM_ELECTRODES
-	if IMAN(ii),
-	  Vout = Vout + VMAN(ii)*data.trapConfiguration.(['mEL_DC' num2str(ii)]);
-	end
+        if IMAN(ii),
+            Vout = Vout + VMAN(ii)*data.Simulation.(['mEL_DC' num2str(ii)]);
+        end
     end  
     for ii=1:NUM_ELECTRODES
-        Vout = Vout + VMULT(ii)*data.trapConfiguration.(['EL_DC' num2str(ii)]);
+        Vout = Vout + VMULT(ii)*data.Simulation.(['EL_DC' num2str(ii)]);
     end
     
     Vout = Vout-Ex*x-Ey*y-Ez*z;

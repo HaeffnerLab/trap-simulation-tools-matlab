@@ -48,10 +48,10 @@ qualityCheck = true;                                                       % per
 Zval = data.trapConfiguration.trappingPosition;
 dcVoltages = data.trapInstance.dcVoltages;
 scale = data.trapConfiguration.scale;
-grid = data.trapConfiguration.grid;
-X = normalize(data.trapConfiguration.X); 
-Y = normalize(data.trapConfiguration.Y); 
-Z = normalize(data.trapConfiguration.Z);
+grid = data.Simulation.grid;
+X = normalize(data.Simulation.X); 
+Y = normalize(data.Simulation.Y); 
+Z = normalize(data.Simulation.Z);
 [y x z] = meshgrid(Y,X,Z);
 RFampl = data.trapInstance.driveAmplitude;                                 % RF parameters
 Freq = data.trapInstance.driveFrequency;                    
@@ -60,11 +60,11 @@ r0 = data.trapConfiguration.r0;                                            % len
 V0 = mass*(2*pi*Omega)^2*(r0*1e-3)^2/qe;                                   % god given voltage in SI 
 % end Intitalization
 %% Check RF potential
-[Irf Jrf Krf] = find_saddle(data.trapConfiguration.EL_RF,X,Y,Z,2,Zval,'RF potential in post_process_trap', true);
+[Irf Jrf Krf] = find_saddle(data.Simulation.EL_RF,X,Y,Z,2,Zval,'RF potential in post_process_trap', true);
 fprintf('RF saddle indices: %d,%d,%d\n',Irf,Jrf,Krf);
 pause;
-warn('RF',data.trapConfiguration.EL_RF,Irf,Jrf,Krf);
-Vrf = RFampl*data.trapConfiguration.EL_RF;
+warn('RF',data.Simulation.EL_RF,Irf,Jrf,Krf);
+Vrf = RFampl*data.Simulation.EL_RF;
 plot_potential(Vrf,Irf,Jrf,Krf,grid,rfplot,'RF potential','V_{rf} (Volt)',varargin);
 % end check RF potential
 %% Check DC potential 
@@ -188,7 +188,7 @@ end
 %% Analyze trap instance 
 % remove % Udc = CalcVDC(data,scale*dcVoltages,E(1),E(2),E(3),NUM_DC,NUM_Center,x,y,z,truncVoltages,RF_offset);
 Udc = dc_potential(data,dcVoltages,0*dcVoltages,E(1),E(2),E(3),x,y,z);
-[XRF YRF ZRF] = exact_saddle(data.trapConfiguration.EL_RF,X,Y,Z,2,Zval);                                  % find secular frequencies etc.
+[XRF YRF ZRF] = exact_saddle(data.Simulation.EL_RF,X,Y,Z,2,Zval);                                  % find secular frequencies etc.
 [XDC YDC ZDC] = exact_saddle(Udc,X,Y,Z,3,Zval);
 fprintf('RF saddle: (%f %f %f)\nDC saddle (%f %f %f).\n',XRF,YRF,ZRF,XDC,YDC,ZDC);
 
@@ -259,7 +259,7 @@ print_underlined_message('stop_','post_process_trap');
         dm = Ei;
         E1 = dm(1); E2 = dm(2); E3 = dm(3);
         Vl = Udc-E1*x-E2*y-E3*z;
-        [xrf yrf zrf] = exact_saddle(data.trapConfiguration.EL_RF,X,Y,Z,2,Zval);
+        [xrf yrf zrf] = exact_saddle(data.Simulation.EL_RF,X,Y,Z,2,Zval);
         [xdc ydc zdc] = exact_saddle(Vl,X,Y,Z,3,Zval); 
         f = sqrt((xrf-xdc)^2+(yrf-ydc)^2+(zrf-zdc)^2);
     end
@@ -275,7 +275,7 @@ print_underlined_message('stop_','post_process_trap');
         wc = scale*(W-hc); nc = scale*(N+hc);  v = scale*(Cnt+vc);  
         Vl = VDC1(wc,nc,v,ex,ey,ez);
         [xdc ydc zdc] = exact_saddle(Vl,X,Y,Z,3,Zval); 
-        [xrf yrf zrf] = exact_saddle(data.trapConfiguration.EL_RF,X,Y,Z,2,Zval);
+        [xrf yrf zrf] = exact_saddle(data.Simulation.EL_RF,X,Y,Z,2,Zval);
         f = sqrt((xrf-xdc)^2+(yrf-ydc)^2+(zdc-zdc)^2);
     end
 %%

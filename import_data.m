@@ -1,13 +1,12 @@
 function data = import_data(data_in)
 % function import_data(data_in)
 %
-%
 % Imports bemsolver .txt data to matlab .mat data, creates the directory 
 % dataout.systemInformation.matDataPath, and saves the mat files in there.
 % Takes .txt file as input and converts it into a data structure .dat. Saves
 % mat-structure under the same filename as the .txt. The potentials for the 
 % trap electrodes, the grid vectors, and the grid parameters are stored
-% as fields in the structure "data"  
+% as fields in the structure "Simulation"  
 %
 % import_data.m can import multiple .txt files (see for loop). The number of
 % files to be imported can be adjusted via nMatTot.
@@ -17,8 +16,8 @@ function data = import_data(data_in)
 % nMatTot: number of simulation files
 % 
 % All the conventions concerning which electrodes are being used and which 
-% ones are bound together were defined in project_parameters and they are 
-% implemented here.
+% ones are bound together were defined in project_parameters but they are 
+% not implemented here. Here all electrodes are converted from txt to mat
 %
 % Rules:
 % *All the electrodes are assumed to be DC electrodes to begin with.
@@ -41,13 +40,15 @@ dataNames = data_in.systemInformation.dataNames;
 matDataPath = data_in.systemInformation.matDataPath;
 perm = data_in.systemInformation.axesPermutation;
 scale = data_in.trapConfiguration.scale;
+nStart = data_in.trapConfiguration.nStart;
 nMatTot = data_in.trapConfiguration.nMatTot;
 NUM_AXIS = data_in.trapConfiguration.NUM_AXIS;
 NUM_ELECTRODES = data_in.trapConfiguration.NUM_ELECTRODES;
 electrodeMapping = data_in.trapConfiguration.electrodeMapping;
+manualElectrodes = data_in.trapConfiguration.manualElectrodes;
 NUM_USED_ELECTRODES = data_in.trapConfiguration.NUM_USED_ELECTRODES;
 
-data = data_in;%%%%out
+data = data_in;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%check if older files exist in aux.txt nMatTot and perm must agree
@@ -83,7 +84,7 @@ else
   mkdir (sprintf('%s%s',simulationDirectory,[projectName,'_',timestarted,'_','post-processed/']));
 end
 
-for iterationNumber=data_in.trapConfiguration.nStart:nMatTot
+for iterationNumber=nStart:nMatTot
 
     %%%%%
     %			PART I: read txt file
@@ -152,62 +153,62 @@ for iterationNumber=data_in.trapConfiguration.nStart:nMatTot
     end
 
     %%%%%
-    %			PART II: organize the electrodes in data according to the trap configurtation
-    %			this can become a seperate function
+    %			PART II: organize the electrodes in Simulation according to the trap configurtation
+    %			this must become a seperate function
     %			The DC electrodes are grouped in two categories: EL_DC (multipole controlled), and mEL_DC (manual voltage controlled)
     %%%%%
     clear DataFromTxt
-    %hard-codes to reorganize struct for specific electrode configuration
+    %hard-codes to reorganize Simulation for specific electrode configuration
     if size(x,2)>size(x,1)
-        data.trapConfiguration.X = x;
-        data.trapConfiguration.Y = y;
-        data.trapConfiguration.Z = z;
+        Simulation.X = x;
+        Simulation.Y = y;
+        Simulation.Z = z;
     else
-        data.trapConfiguration.X = x';
-        data.trapConfiguration.Y = y';
-        data.trapConfiguration.Z = z';
+        Simulation.X = x';
+        Simulation.Y = y';
+        Simulation.Z = z';
     end
        
-    data.trapConfiguration.grid = [xmin ymin zmin deltax deltay deltaz];
-    data.trapConfiguration.EL_RF = struct.EL_phi0;	% Need to edit this if you are using out of phase! layer1=DC1 etc if layer 2 is DC1 if +1
+    Simulation.grid = [xmin ymin zmin deltax deltay deltaz];
+    Simulation.EL_RF = struct.EL_phi0;	% Need to edit this if you are using out of phase! layer1=DC1 etc if layer 2 is DC1 if +1
     if (electrodeMapping(size(electrodeMapping,1),1)~=NUM_ELECTRODES)||(electrodeMapping(size(electrodeMapping,1),2)~=NUM_USED_ELECTRODES)
 	fprintf('import_data: There seems to be a problem with your mapping definition. Check electrodeMapping. \n');
     end
     % initialize NUM_USED_DC electrodes
     for iii=1:(NUM_USED_ELECTRODES)
-        data.trapConfiguration.(['EL_DC' num2str(iii)]) = zeros(NUM_AXIS,NUM_AXIS,NUM_AXIS);
-        data.trapConfiguration.(['mEL_DC' num2str(iii)]) = zeros(NUM_AXIS,NUM_AXIS,NUM_AXIS);
+        Simulation.(['EL_DC' num2str(iii)]) = zeros(NUM_AXIS,NUM_AXIS,NUM_AXIS);
+        Simulation.(['mEL_DC' num2str(iii)]) = zeros(NUM_AXIS,NUM_AXIS,NUM_AXIS);
     end
     % add each electrode to the combination where it belongs. If electrodeMapping entry is 0, then the electrode is not used. The last electrode is the RF, and it is added by hand.
     for iii=1:(NUM_ELECTRODES-1)
 	  if sign( electrodeMapping(iii,2) )
-	      data.trapConfiguration.(['EL_DC' num2str(electrodeMapping(iii,2))]) = data.trapConfiguration.(['EL_DC' num2str(electrodeMapping(iii,2))]) ...
+	      Simulation.(['EL_DC' num2str(electrodeMapping(iii,2))]) = Simulation.(['EL_DC' num2str(electrodeMapping(iii,2))]) ...
 								+ struct.(['EL_phi' num2str(electrodeMapping(iii,1))]);
 	  elseif manualElectrodes(iii)
-	      data.trapConfiguration.(['mEL_DC' num2str(iii)]) = data.trapConfiguration.(['mEL_DC' num2str(iii)]) ...
+	      Simulation.(['mEL_DC' num2str(iii)]) = Simulation.(['mEL_DC' num2str(iii)]) ...
 								+ struct.(['EL_phi' num2str(iii)]);
 	  end
     end
-    if sign( electrodeMapping(NUM_ELECTRODES,2) )
-	data.trapConfiguration.(['EL_DC' num2str(electrodeMapping(NUM_ELECTRODES,2))]) = data.trapConfiguration.EL_RF;
+    if sign( electrodeMapping(NUM_ELECTRODES,2) ) % last, take care of the RF electrode
+        Simulation.(['EL_DC' num2str(electrodeMapping(NUM_ELECTRODES,2))]) = Simulation.EL_RF;
     elseif manualElectrodes(NUM_ELECTRODES)
-	data.trapConfiguration.(['mEL_DC' num2str(NUM_ELECTRODES)]) = data.trapConfiguration.EL_RF;
+        Simulation.(['mEL_DC' num2str(NUM_ELECTRODES)]) = Simulation.EL_RF;
     end
     fprintf('Saving data to matDataPath:\n%s\n',[sprintf('%s',matDataPath), sprintf('%s', dataNames), '_',sprintf('%d',iterationNumber), '.mat']);
     if strcmp(platform,'octave')
-	save ('-v7',[sprintf('%s',matDataPath), sprintf('%s', dataNames), '_', sprintf('%d',iterationNumber), '.mat'],'data');
+        save ('-v7',[sprintf('%s',matDataPath), sprintf('%s', dataNames), '_', sprintf('%d',iterationNumber), '.mat'],'Simulation');
     else
-	save([sprintf('%s',data.systemInformation.matDataPath), sprintf('%s', dataNames), '_', sprintf('%d',iterationNumber), '.mat'],'data');
+        save([sprintf('%s',data.systemInformation.matDataPath), sprintf('%s', dataNames), '_', sprintf('%d',iterationNumber), '.mat'],'Simulation');
     end
 end
 % plot the RF potential
-Ef = data.trapConfiguration.(['EL_DC' num2str(electrodeMapping(iii+1,2))]);% 10.22.2013 % Ef = data.EL_RF;
+Ef = Simulation.EL_RF;%Simulation.(['EL_DC' num2str(electrodeMapping(iii+1,1))]);
 for a = 1:NUM_AXIS
     for b = 1:NUM_AXIS
         E(a,b) = Ef(a,b,NUM_AXIS);
     end
 end
-figure; surface(x,y,E); title('import_data: Plotting the RF potential');
+figure; surface(x,y,E); title('import_ data: Plotting the RF potential');
 print_underlined_message('stop_','import_data');
 
 

@@ -92,7 +92,9 @@ if (dim==2)
 	[qx qy] = gradient(f,X(2)-X(1),Y(2)-Y(1));
 	q = sqrt(qx.^2+qy.^2);
     if 0,% add a plotting flag here?
-        imagesc(q);pause(0.1);
+        imagesc(q);
+        title('find_saddle plot: (grad(U_{ps}))^2')
+        pause(0.1);
     end
 	m = min(min(q));
 	if m>threshold

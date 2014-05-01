@@ -33,7 +33,9 @@ multipoleCoefficients = data.trapConfiguration.multipoleCoefficients;
 regularize = data.trapConfiguration.regularize;
 
 Mt = vertcat(multipoleCoefficients(2:9,:));%,eye(21));
-imagesc(Mt); pause;
+imagesc(Mt); 
+title('trap_ knobs: Multipole coefficients (Ex-U5) for trap electrodes');
+pause;
 numMultipoles = sum(data.trapConfiguration.usedMultipoles);
 C = zeros(numMultipoles,size(Mt,2));
 Mtt = zeros(numMultipoles,size(Mt,2));

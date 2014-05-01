@@ -18,7 +18,7 @@ data = trap_knobs(data,trap_knobs_plot);
 
 set_voltages;
 dcplot = '1d plots';
-rfplot = '1d plots';
+rfplot = '1d --plots';
 pseudpotplot = '1d plots';
 trappotplot = '1d plots';
 data = post_process_trap(data,'analyzeTrap',dcplot,rfplot,pseudpotplot,trappotplot);

@@ -37,7 +37,7 @@ Zs = Zgr(ix);
 vs = v(ix);
 if debug,
     fprintf('trap_depth running in debug mode. Disable plots by setting debug = false in trap_depth.\n')
-    plot(srt); title('trap_depth: Finding trap depth. Sorted trap potential data shown.'); pause;
+    plot(srt); title('trap_depth: Finding trap depth. Sorted trap potential trap shown.'); pause;
     plot(qs); title('Finding trap depth. Modulus of gradient of (sorted) trap potential shown.'); pause;
 end;
 [der I] = min(qs(27:size(qs,2)));  % the nearest neighbors of the minimum cannot be in the escape range

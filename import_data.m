@@ -1,18 +1,18 @@
-function data = import_data(data_in)
-% function import_data(data_in)
+function trap = import_trap(trap_in)
+% function import_trap(trap_in)
 %
-% Imports bemsolver .txt data to matlab .mat data, creates the directory 
-% dataout.systemInformation.matDataPath, and saves the mat files in there.
-% Takes .txt file as input and converts it into a data structure .dat. Saves
+% Imports bemsolver .txt trap to matlab .mat trap, creates the directory 
+% trapout.systemInformation.matDataPath, and saves the mat files in there.
+% Takes .txt file as input and converts it into a trap structure .dat. Saves
 % mat-structure under the same filename as the .txt. The potentials for the 
 % trap electrodes, the grid vectors, and the grid parameters are stored
 % as fields in the structure "Simulation"  
 %
-% import_data.m can import multiple .txt files (see for loop). The number of
+% import_trap.m can import multiple .txt files (see for loop). The number of
 % files to be imported can be adjusted via nMatTot.
 %
 % nStart: index of the trap simulation file on which you want to start 
-% importing data
+% importing trap
 % nMatTot: number of simulation files
 % 
 % All the conventions concerning which electrodes are being used and which 
@@ -32,30 +32,30 @@ function data = import_data(data_in)
 %
 
 % unwrap variables
-platform = data_in.systemInformation.platform;
-timestarted = data_in.systemInformation.timestarted;
-simulationDirectory = data_in.systemInformation.simulationDirectory;
-projectName = data_in.systemInformation.projectName;
-dataNames = data_in.systemInformation.dataNames;
-matDataPath = data_in.systemInformation.matDataPath;
-perm = data_in.systemInformation.axesPermutation;
-scale = data_in.trapConfiguration.scale;
-nStart = data_in.trapConfiguration.nStart;
-nMatTot = data_in.trapConfiguration.nMatTot;
-NUM_AXIS = data_in.trapConfiguration.NUM_AXIS;
-NUM_ELECTRODES = data_in.trapConfiguration.NUM_ELECTRODES;
-%EC01 electrodeMapping = data_in.trapConfiguration.electrodeMapping;
-%EC01 manualElectrodes = data_in.trapConfiguration.manualElectrodes;
-%EC01 NUM_USED_ELECTRODES = data_in.trapConfiguration.NUM_USED_ELECTRODES;
+platform = trap_in.systemInformation.platform;
+timestarted = trap_in.systemInformation.timestarted;
+simulationDirectory = trap_in.systemInformation.simulationDirectory;
+projectName = trap_in.systemInformation.projectName;
+DataNames = trap_in.systemInformation.DataNames;
+matDataPath = trap_in.systemInformation.matDataPath;
+perm = trap_in.systemInformation.axesPermutation;
+scale = trap_in.Configuration.scale;
+nStart = trap_in.Configuration.nStart;
+nMatTot = trap_in.Configuration.nMatTot;
+NUM_AXIS = trap_in.Configuration.NUM_AXIS;
+NUM_ELECTRODES = trap_in.Configuration.NUM_ELECTRODES;
+%EC01 electrodeMapping = trap_in.Configuration.electrodeMapping;
+%EC01 manualElectrodes = trap_in.Configuration.manualElectrodes;
+%EC01 NUM_USED_ELECTRODES = trap_in.Configuration.NUM_USED_ELECTRODES;
 
-data = data_in;
+trap = trap_in;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%check if older files exist in aux.txt nMatTot and perm must agree
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% check if the matdatapath directory exists, and if it does not, create it
-% if it does exist, just load data from it
-simfiles = dir(data_in.systemInformation.simulationDirectory);
+% check if the mattrappath directory exists, and if it does not, create it
+% if it does exist, just load trap from it
+simfiles = dir(trap_in.systemInformation.simulationDirectory);
 newest = 1e6; % assume some ridiculously old simulation directory
 newestDirIndex = 0;
 for i = 1:numel(simfiles)
@@ -69,12 +69,12 @@ for i = 1:numel(simfiles)
     end 
 end
 
-print_underlined_message('start','import_data');
+print_underlined_message('start','import_trap');
 if newestDirIndex    
-    data.systemInformation.matDataPath = [simulationDirectory,simfiles(newestDirIndex).name, '/'];%%%out
+    trap.systemInformation.matDataPath = [simulationDirectory,simfiles(newestDirIndex).name, '/'];%%%out
     fprintf('Recent simulation directory already exists in simulation directory:\n');
     fprintf(sprintf('%s\nSkipping txt->mat conversion.\n',matDataPath));
-    print_underlined_message('stop_','import_data');
+    print_underlined_message(' stop','import_trap');
     return
 end
 
@@ -89,9 +89,9 @@ for iterationNumber=nStart:nMatTot
     %%%%%
     %			PART I: read txt file
     %%%%%
-    fprintf(['Importing ',sprintf('%s%i',dataNames,iterationNumber),'.txt \n']);
+    fprintf(['Importing ',sprintf('%s%i',DataNames,iterationNumber),'.txt \n']);
     
-    DataFromTxt = load([sprintf('%s',simulationDirectory),sprintf('%s',dataNames), sprintf('%d',iterationNumber), '.txt']);  % this instance of load returns a matrix with the numbers in the specified text file
+    DataFromTxt = load([sprintf('%s',simulationDirectory),sprintf('%s',DataNames), sprintf('%d',iterationNumber), '.txt']);  % this instance of load returns a matrix with the numbers in the specified text file
 
     %find the x y and z grids
     y = 0;
@@ -169,7 +169,7 @@ for iterationNumber=nStart:nMatTot
     Simulation.grid = [xmin ymin zmin deltax deltay deltaz];
     Simulation.EL_RF = struct.EL_phi0;	% Need to edit this if you are using out of phase! layer1=DC1 etc if layer 2 is DC1 if +1
     % EC01if (electrodeMapping(size(electrodeMapping,1),1)~=NUM_ELECTRODES)||(electrodeMapping(size(electrodeMapping,1),2)~=NUM_USED_ELECTRODES)
-    % EC01    fprintf('import_data: There seems to be a problem with your mapping definition. Check electrodeMapping. \n');
+    % EC01    fprintf('import_trap: There seems to be a problem with your mapping definition. Check electrodeMapping. \n');
     % EC01end
     % initialize NUM_USED_DC electrodes
     for iii=1:NUM_ELECTRODES%EC01 (NUM_USED_ELECTRODES)
@@ -194,11 +194,11 @@ for iterationNumber=nStart:nMatTot
     %EC01elseif manualElectrodes(NUM_ELECTRODES)
     %EC01    Simulation.(['mEL_DC' num2str(NUM_ELECTRODES)]) = Simulation.EL_RF;
     %EC01end
-    fprintf('Saving data to matDataPath:\n%s\n',[sprintf('%s',matDataPath), sprintf('%s', dataNames), '_',sprintf('%d',iterationNumber), '.mat']);
+    fprintf('Saving trap to matDataPath:\n%s\n',[sprintf('%s',matDataPath), sprintf('%s', DataNames), '_',sprintf('%d',iterationNumber), '.mat']);
     if strcmp(platform,'octave')
-        save ('-v7',[sprintf('%s',matDataPath), sprintf('%s', dataNames), '_', sprintf('%d',iterationNumber), '.mat'],'Simulation');
+        save ('-v7',[sprintf('%s',matDataPath), sprintf('%s', DataNames), '_', sprintf('%d',iterationNumber), '.mat'],'Simulation');
     else
-        save([sprintf('%s',data.systemInformation.matDataPath), sprintf('%s', dataNames), '_', sprintf('%d',iterationNumber), '.mat'],'Simulation');
+        save([sprintf('%s',trap.systemInformation.matDataPath), sprintf('%s', DataNames), '_', sprintf('%d',iterationNumber), '.mat'],'Simulation');
     end
 end
 % plot the RF potential
@@ -208,7 +208,7 @@ for a = 1:NUM_AXIS
         E(a,b) = Ef(a,b,NUM_AXIS);
     end
 end
-figure; surface(x,y,E); title('import_ data: Plotting the RF potential');
-print_underlined_message('stop_','import_data');
+figure; surface(x,y,E); title('import_ trap: Plotting the RF potential');
+print_underlined_message(' stop','import_trap');
 
 

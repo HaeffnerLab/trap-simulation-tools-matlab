@@ -53,7 +53,7 @@ set_voltages:
 import_data:
     You should not have to look inside this function, unless you are trying something new (and possibly inappropriate). 
     import_data reads the text files which your BEM solver simulations generated, and converts them to a .mat structure (matlab)
-    or a pickled data object (python). import_data *does not* make any changes to the structure 'data'. This is the job 
+    or a pickled data object (python). import_data *does not* make any changes to the structure 'trap'. This is the job 
     of the next function. 
     
     The main thing to remember is that consecutive BEM solver simulations must have overlapping 
@@ -62,29 +62,29 @@ import_data:
     
 get_trapping_field:
     You should not have to look inside this function, unless you are trying something new (and possibly inappropriate). 
-    get_trapping_field adds the grid and electrostatic potential arrays to the structure 'data'. It looks through the data 
+    get_trapping_field adds the grid and electrostatic potential arrays to the structure 'trap'. It looks through the data 
     structures which BEM solver generated and creates new data structure whith a grid which is centered around 
     the position where you want to trap. You define the trapping position in project_parameters. 
     
-    At the end of get_trapping_field, the structure 'data' should contain a field Simulation, with subfields such as 
-    data.Simulation.X, data.Simulation.EL_DC1, etc.
+    At the end of get_trapping_field, the structure 'trap' should contain a field Simulatrion, with subfields such as 
+    trap.Simulation.X, trap.Simulation.EL_DC1, etc.
 
 expand_field:
     You should not have to look inside this function, unless you are trying something new (and possibly inappropriate). 
     expand_field does the spherical harmonic expansion of the potentials for all the used electrodes. It then stores the 
-    harmonic expansion coefficients in the array data.trapConfiguration.multipoleCoefficients.
+    harmonic expansion coefficients in the array trap.Configuration.multipoleCoefficients.
     
     As an option, expand_field will also compute all the potentials from the spherical harmonic coefficients and replace the 
     original values with the computed ones. This can be useful as a data smoothing step so that the algorithms which use 
-    numerical derivatives (e.g. in ppt2 for pseudopotential calculation, find_saddle, trap_depth) work better.
+    numerical derivatives (e.g. in post_process_trap for pseudopotential calculation, find_saddle, trap_depth) work better.
     
 trap_knobs:
     You should not have to look inside this function, unless you are trying something new (and possibly inappropriate). 
     trap_knobs calculates the independent multipole control parameters (see G. Littich Master's thesis for an explanation of 
-    what these are). It stores the control parameters in data.trapConfiguration.multipoleControl. It also stores the kernel 
-    vectors of the multipoleControl space in data.trapConfiguration.multipoleControl. 
+    what these are). It stores the control parameters in trap.Configuration.multipoleControl. It also stores the kernel 
+    vectors of the multipoleControl space in trap.Configuration.multipoleControl. 
     
-    Normally, you are done at this point, you can save the so-called data.trapConfiguration.multipoleControl array to a file 
+    Normally, you are done at this point, you can save the so-called trap.Configuration.multipoleControl array to a file 
     and import it to LabRad. As of 4/4/2014, the array is saved as Multipole_Control_File.txt, under the _post_processed folder
     
 multipole_set_dc:
@@ -101,7 +101,7 @@ post_process_trap:
     also calculates the trap frequencies, trap depth, and trapping position. The options for plotting these potentials are;
     'no plots', '1d plots', '2d plots', and '2d plots and 1d plots'.
     
-    It updates the data.trapInstance structure with all these parameters that it has calculated. 
+    It updates the trap.Instance structure with all these parameters that it has calculated. 
     
     Two obsolete (pre-2009) functionalities of ppt2 are: calculating micromotion compensation parameters given a stray 
     electric field, and calculating a stray electric field, given micromotion compensated voltages. You will not use these, 
@@ -116,21 +116,9 @@ ________________________________________________________________________________
 -----------------------------------------------------------------------------------------------------------------------
 To Do:
 
-* Double check that data stiching is done correctly...OK
-
-* Double check that the electrode mapping and  multipole masking is done properly
-
-* Fix weird if statement at import_data line 192 onward
-
-* Fix erroneous warning at import_data line 174 onward
-
-* Homogenize the naming conventions of scripts and functions. Smooth matlab/python naming inconsistencies
-
 * Expand this readme to include lower level functions
 
 * Add more plotting flags to the remaining functions
-
-* Eliminate name-space polution after post_process_trap
 
 * Generate a set of BEM solver test data which allow transparent tutorial/debugging
 

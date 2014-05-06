@@ -1,5 +1,5 @@
 function [Af Bf theta]=p2d(V,x,y)
-% fit a 2d polynomial to the data in V. 
+% fit a 2d polynomial to the trap in V. 
 % x and y are the 2d coordinate matrices on which the function is defined
 % Af Bf and theta are the curvaturess in the Xr axis, Yr axes, where theta 
 % is the angle between X and Xr. Not sure if the angle is correct when x

@@ -1,11 +1,11 @@
 function [x,msg] = roundn(x,n)
 
-%ROUNDN  Rounds input data at specified power of 10
+%ROUNDN  Rounds input trap at specified power of 10
 %
-%  y = ROUNDN(x) rounds the input data x to the nearest hundredth.
+%  y = ROUNDN(x) rounds the input trap x to the nearest hundredth.
 %
-%  y = ROUNDN(x,n) rounds the input data x at the specified power
-%  of tens position.  For example, n = -2 rounds the input data to
+%  y = ROUNDN(x,n) rounds the input trap x at the specified power
+%  of tens position.  For example, n = -2 rounds the input trap to
 %  the 10E-2 (hundredths) position.
 %
 %  [y,msg] = ROUNDN(...) returns the text of any error condition
@@ -41,6 +41,6 @@ end
 
 factors  = 10 ^ (fix(-n));
 
-%  Set the significant digits for the input data
+%  Set the significant digits for the input trap
 
 x = round(x * factors) / factors;

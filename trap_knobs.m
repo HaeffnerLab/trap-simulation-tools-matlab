@@ -1,6 +1,6 @@
-function datout = trap_knobs(data,plotOption)
-% function datout = trap_knobs(data,plotOption)
-% update data.trapConfiguration with the matrix which controls the independent multipoles, and the kernel matrix
+function datout = trap_knobs(trap,plotOption)
+% function datout = trap_knobs(trap,plotOption)
+% update trap.Configuration with the matrix which controls the independent multipoles, and the kernel matrix
 % Start from the matrix multipoleCoefficients, return a field multipoleControl with the linear combimations of trap 
 % electrode voltages that give 1 V/mm, or 1 V/mm^2 of the multipole number i.
 % Also return matrix multipoleKernel which is the kernel matrix of electrode linear combinations which do nothing to 
@@ -20,7 +20,7 @@ function datout = trap_knobs(data,plotOption)
 % multipoleControl =        (     V                             )
 %                           (                                   )
 %
-% data:         input data structure
+% trap:         input trap structure
 % position:     position of the ion inside the trap
 % plotOption:   show plots, 1 = yes
 % regularize:   sets whether regularization is done or not. 1 = yes
@@ -37,20 +37,20 @@ function datout = trap_knobs(data,plotOption)
 
 print_underlined_message('start','trap_knobs');
 debug = true;
-datout = data;
-NUM_ELECTRODES = data.trapConfiguration.NUM_ELECTRODES;
-electrodeMapping = data.trapConfiguration.electrodeMapping;
-manualElectrodes = data.trapConfiguration.manualElectrodes;
-expansionOrder =  data.trapConfiguration.expansionOrder;
-numTotMultipoles = length(data.trapConfiguration.usedMultipoles);
-usedMultipoles = data.trapConfiguration.usedMultipoles;
-numUsedMultipoles = sum(data.trapConfiguration.usedMultipoles);
-multipoleCoefficients = data.trapConfiguration.multipoleCoefficients;
-regularize = data.trapConfiguration.regularize;
+datout = trap;
+NUM_ELECTRODES = trap.Configuration.NUM_ELECTRODES;
+electrodeMapping = trap.Configuration.electrodeMapping;
+manualElectrodes = trap.Configuration.manualElectrodes;
+expansionOrder =  trap.Configuration.expansionOrder;
+numTotMultipoles = length(trap.Configuration.usedMultipoles);
+usedMultipoles = trap.Configuration.usedMultipoles;
+numUsedMultipoles = sum(trap.Configuration.usedMultipoles);
+multipoleCoefficients = trap.Configuration.multipoleCoefficients;
+regularize = trap.Configuration.regularize;
 
 MR = compact_matrix(multipoleCoefficients, NUM_ELECTRODES, (expansionOrder+1)^2, electrodeMapping, manualElectrodes);
 
-datout.trapConfiguration.multipoleCoefficientsReduced = vertcat(MR(1:9,:),MR(10:(expansionOrder+1)^2,:));
+datout.Configuration.multipoleCoefficientsReduced = vertcat(MR(1:9,:),MR(10:(expansionOrder+1)^2,:));
 fprintf('trap_knobs: with electrode constrains, the coefficient matrix size is (%i,%i).\n',...
             size(vertcat(MR(1:9,:),MR(10:(expansionOrder+1)^2,:)),1),...
             size(vertcat(MR(1:9,:),MR(10:(expansionOrder+1)^2,:)),2));
@@ -64,7 +64,7 @@ C = zeros(numUsedMultipoles,size(allM,2));
 usedM = zeros(numUsedMultipoles,size(allM,2));
 usmm = 1;
 for mm = 1:numTotMultipoles % keep only the multipoles you specified in usedMultipoles
-  if data.trapConfiguration.usedMultipoles(mm),
+  if trap.Configuration.usedMultipoles(mm),
     usedM(usmm,:) = allM(mm,:);
     usmm = usmm+1;
   end
@@ -95,14 +95,14 @@ if regularize
     end
 end
 if debug
-    datout.trapConfiguration.multipoleControlReduced = C';
+    datout.Configuration.multipoleControlReduced = C';
 end
 C = expand_matrix_mult(C,numTotMultipoles,usedMultipoles);
 C = expand_matrix_el(C, NUM_ELECTRODES, electrodeMapping, manualElectrodes); 
 
-datout.trapConfiguration.multipoleKernel = K;
-datout.trapConfiguration.multipoleControl = C';
-print_underlined_message('stop_','trap_knobs');
+datout.Configuration.multipoleKernel = K;
+datout.Configuration.multipoleControl = C';
+print_underlined_message(' stop','trap_knobs');
 
 %%%%%%%%%%%%%%%%%%% Auxiliary functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     function RM = compact_matrix(MM, NUM_ELECTRODES,numMultipoles, electrodeMap, manualEl) 

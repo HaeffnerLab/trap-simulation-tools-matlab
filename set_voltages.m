@@ -1,11 +1,11 @@
-function data_out = set_voltages(data)
-% function data_out = set_voltages(data)
+function trap_out = set_voltages(trap)
+% function trap_out = set_voltages(trap)
 % create a vector of voltages to use for the post_process_trap analysis
 % this script has to be run after trap_knobs (because set_dc uses the trap 
-% knobs control field in data.trapConfiguration.multipoleControl) but 
+% knobs control field in trap.Configuration.multipoleControl) but 
 % before post_process_trap 
 
-data_out = data;
+trap_out = trap;
 multipoleControls = true;                                                  % See set_dc for more explanations
 regularizeDC = false;                                                      % 
 az = 4.5e-3;                                                               % Mathieu alpha_z parameter (valid only if multipoleControls == false) 
@@ -20,14 +20,14 @@ U3 = .0;
 U4 = .0; 
 U5 = .0;
 
-el = multipole_set_dc(data,[-Ex,-Ey,-Ez]',[U1,U2,U3,U4,U5]',[ax,az,phi],multipoleControls,regularizeDC);
+el = multipole_set_dc(trap,[-Ex,-Ey,-Ez]',[U1,U2,U3,U4,U5]',[ax,az,phi],multipoleControls,regularizeDC);
 
-for ii = 1:data.trapConfiguration.NUM_ELECTRODES
-    if data.trapConfiguration.manualElectrodes(ii)
-        el(ii) = data.trapConfiguration.manualVoltages(ii);
+for ii = 1:trap.Configuration.NUM_ELECTRODES
+    if trap.Configuration.manualElectrodes(ii)
+        el(ii) = trap.Configuration.manualVoltages(ii);
     end
 end
 
-data_out.trapInstance.dcVoltages = el;
-data_out.trapInstance.E_in = [Ex Ey Ez];
-data_out.trapInstance.U_DC_in = [U1 U2 U3 U4 U5]; 
+trap_out.Instance.dcVoltages = el;
+trap_out.Instance.E_in = [Ex Ey Ez];
+trap_out.Instance.U_DC_in = [U1 U2 U3 U4 U5]; 

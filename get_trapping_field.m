@@ -60,7 +60,6 @@ N = sign(2*position-zLim(I)-zLim(I+1));
 if (I==1)&&(N==-1),
     % If the ion is in the first half of the first grid, just use the first grid
     d = load([sprintf('%s',path),sprintf('%s',dataNames),'_1.mat']); 
-    %fprintf('');% nd 04/30/2014
     data.Simulation = d.Simulation;
     noStitch = true;
 elseif (I==nMatTot)&&(N==1),
@@ -110,12 +109,7 @@ if ~noStitch
         data.Simulation.Z(i-K1+1) = Simulation1.Z(i); 
         data.Simulation.EL_RF(:,:,i-K1+1) = Simulation1.EL_RF(:,:,i);
         for iii=1:(NUM_ELECTRODES)
-            if isfield(Simulation1,['EL_DC' num2str(iii)]),
-                data.Simulation.(['EL_DC' num2str(iii)])(:,:,i-K1+1) = Simulation1.(['EL_DC' num2str(iii)])(:,:,i);
-            end
-            if isfield(Simulation1,['mEL_DC' num2str(iii)]),        % logic error here: mEL_DC always exists, but it is zero if unused. if case is unnecessary. 12-10-2013
-                data.Simulation.(['mEL_DC' num2str(iii)])(:,:,i-K1+1) = Simulation1.(['mEL_DC' num2str(iii)])(:,:,i);
-            end
+            data.Simulation.(['EL_DC' num2str(iii)])(:,:,i-K1+1) = Simulation1.(['EL_DC' num2str(iii)])(:,:,i);
         end
     end
 
@@ -123,12 +117,7 @@ if ~noStitch
         data.Simulation.Z(i-K3+max(K2-K1,-1)+2) = Simulation2.Z(i); 
         data.Simulation.EL_RF(:,:,i-K3+max(K2-K1,-1)+2) = Simulation2.EL_RF(:,:,i); 
         for iii=1:(NUM_ELECTRODES)
-            if isfield(Simulation2,['EL_DC' num2str(iii)]),
-                data.Simulation.(['EL_DC' num2str(iii)])(:,:,i-K3+max(K2-K1,-1)+2) = Simulation2.(['EL_DC' num2str(iii)])(:,:,i);
-            end
-            if isfield(Simulation2,['mEL_DC' num2str(iii)]),       % logic error here: mEL_DC always exists, but it is zero if unused. if case is unnecessary. 12-10-2013
-                data.Simulation.(['mEL_DC' num2str(iii)])(:,:,i-K3+max(K2-K1,-1)+2) = Simulation2.(['mEL_DC' num2str(iii)])(:,:,i);
-            end
+            data.Simulation.(['EL_DC' num2str(iii)])(:,:,i-K3+max(K2-K1,-1)+2) = Simulation2.(['EL_DC' num2str(iii)])(:,:,i);
         end 
     end
     data.Simulation.grid = [min(data.Simulation.X) min(data.Simulation.Y) min(data.Simulation.Z) ...

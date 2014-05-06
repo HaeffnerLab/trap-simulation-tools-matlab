@@ -1,6 +1,13 @@
-%%%%%%%%%%%%%%%%%%%%%%%%% The following are voltage controls in case I decide to run post_process_trap to analyze specific inputs 
+function data_out = set_voltages(data)
+% function data_out = set_voltages(data)
+% create a vector of voltages to use for the post_process_trap analysis
+% this script has to be run after trap_knobs (because set_dc uses the trap 
+% knobs control field in data.trapConfiguration.multipoleControl) but 
+% before post_process_trap 
+
+data_out = data;
 multipoleControls = true;                                                  % See set_dc for more explanations
-regularizedc = false;                                                      % 
+regularizeDC = false;                                                      % 
 az = 4.5e-3;                                                               % Mathieu alpha_z parameter (valid only if multipoleControls == false) 
 ax = -0.002;                                                               % Mathieu alpha_x parameter (valid only if multipoleControls == false)
 phi = .0;                                                                  % Angle of rotation of DC multipole wrt RF multipole (valid only if multipoleControls == false)
@@ -13,14 +20,14 @@ U3 = .0;
 U4 = .0; 
 U5 = .0;
 
-manualvoltages = false;                                                    % Set this to true if you want to control the electrode voltages copmpletely manually
-if manualvoltages,
-    el = 	[0.0000;	-0.2724;	1.1564;		2.7547;		-11.5354;...
-		 2.7670;	1.0742;		-0.37280;	-0.3178;	0.0000;...
-		 0.0000;	0.0000;		-0.49017;	-0.9589;	-4.9847;...
-		-3.7588;	-4.7823;	-0.94308;	-0.5042;	-0.3218;...
-		 0.0000;	0.0000;		-0.57479];
-else
-    el = set_dc(data,[-Ex,-Ey,-Ez]',[U1,U2,U3,U4,U5]',[ax,az,phi],multipoleControls,regularizedc);
+el = multipole_set_dc(data,[-Ex,-Ey,-Ez]',[U1,U2,U3,U4,U5]',[ax,az,phi],multipoleControls,regularizeDC);
+
+for ii = 1:data.trapConfiguration.NUM_ELECTRODES
+    if data.trapConfiguration.manualElectrodes(ii)
+        el(ii) = data.trapConfiguration.manualVoltages(ii);
+    end
 end
-data.trapInstance.dcVoltages = el;
+
+data_out.trapInstance.dcVoltages = el;
+data_out.trapInstance.E_in = [Ex Ey Ez];
+data_out.trapInstance.U_DC_in = [U1 U2 U3 U4 U5]; 

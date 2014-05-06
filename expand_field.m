@@ -3,13 +3,14 @@ function datout = expand_field(data)
 % Return a field datout.trapConfiguration.multipoleCoefficients, which contains the multipole coefficients for all electrodes.
 % Also (if regenerate = true) regenerate the DC potential data for all electrodes using multipole
 % expansion to order expansionOrder. 
-% The electrodes are ordered as E(1), ..., E(NUM_ELECTRODES)=E(RF)
+% The electrodes are ordered as E(1), ...,  E(NUM_ELECTRODES-1)=E(Center), E(NUM_ELECTRODES)=E(RF)
 % i.e. the NUM_ELECTRODES-1 is the center electrode bias, and the NUM_ELECTRODES is the RF electrode bias
-% (if center and RF are used)  
-%       ( multipoles    electrodes ->       )
-%       (     |                             )
-% M =   (     V                             )
-%       (                                   )
+%   
+%                           ( multipoles    electrodes ->       )
+%                           (     |                             )
+% multipoleCoefficients =   (     V                             )
+%                           (                                   )
+%
 % Multipole coefficients only up to order 8 are kept, but the
 % coefficients are calculated up to order expansionOrder.
 %
@@ -32,6 +33,8 @@ Ycorrection = data.trapConfiguration.Ycorrection;
 position = data.trapConfiguration.trappingPosition;
 expansionOrder = data.trapConfiguration.expansionOrder;
 NUM_ELECTRODES = data.trapConfiguration.NUM_ELECTRODES;
+electrodeMapping = data.trapConfiguration.electrodeMapping;
+manualElectrodes = data.trapConfiguration.manualElectrodes;
 
 fprintf('expand_field: Correction of XRF: %f mm.\n',Xcorrection);
 fprintf('expand_field: Correction of YRF: %f mm.\n',Ycorrection);
@@ -45,24 +48,25 @@ Z = normalize(data.Simulation.Z);
 ord = zeros(1,NUM_ELECTRODES);
 ord(:)=expansionOrder;
 
-% expand the rf about the grid center, regenerate data from the expansion
+fprintf('________pre-smoothing the RF potential________\n');
+%xpand the rf about the grid center, regenerate data from the expansion
 Irf = floor(numel(X)/2); Jrf = floor(numel(Y)/2); Krf = floor(numel(Z)/2);
 Xrf = X(Irf); Yrf=Y(Jrf); Zrf=Z(Krf);
 Qrf = spher_harm_exp(data.Simulation.EL_RF,Xrf,Yrf,Zrf,expansionOrder,X,Y,Z);  
-datout.Simulation.EL_RF = spher_harm_cmp(Qrf,Xrf,Yrf,Zrf,expansionOrder,X,Y,Z);
-%eval(sprintf('datout.Simulation.%s = spher_harm_cmp(Qrf,Xrf,Yrf,Zrf,expansionOrder,X,Y,Z);','EL_RF'));
-
+tempEL_RF = spher_harm_cmp(Qrf,Xrf,Yrf,Zrf,expansionOrder,X,Y,Z);
 % expand the rf about its saddle point at the trapping position, save the quadrupole 
 % components 
+fprintf('________looking for RF saddle point________\n');
 [Xrf Yrf Zrf] = exact_saddle(data.Simulation.EL_RF,X,Y,Z,2,position);
-Qrf = spher_harm_exp(data.Simulation.EL_RF,Xrf+Xcorrection,Yrf+Xcorrection,Zrf,expansionOrder,X,Y,Z);  
+Qrf = spher_harm_exp(tempEL_RF,Xrf+Xcorrection,Yrf+Xcorrection,Zrf,expansionOrder,X,Y,Z);  
 datout.trapConfiguration.Qrf = 2*[Qrf(8)*3 Qrf(5)/2 Qrf(9)*6 -Qrf(7)*3 -Qrf(6)*3];
 datout.trapConfiguration.thetarf = 45*(sign(Qrf(9)))-90*atan((3*Qrf(8))/(3*Qrf(9)))/pi;
+if regenerate
+    fprintf('________regenerating the RF potential________\n');
+    datout.Simulation.EL_RF = spher_harm_cmp(Qrf,Xrf,Yrf,Zrf,expansionOrder,X,Y,Z);
+end
 
 E = [0 0 0];
-%L = expansionOrder;
-%ord = [L L L L L L L L L L L L L L L L L L L L L];
-%ord =  [5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5];
 c = [ 1  0  0  0  0  0  0  0  0; ...
       0  0  1  0  0  0  0  0  0; ...
       0  0  0  1  0  0  0  0  0; ...
@@ -72,47 +76,25 @@ c = [ 1  0  0  0  0  0  0  0  0; ...
       0  0  0  0  0  0  0  0 12; ...
       0  0  0  0  0  0 -6  0  0; ...
       0  0  0  0  0 -6  0  0  0];
- M1 = zeros((expansionOrder+1)^2,NUM_ELECTRODES);
+ M = zeros((expansionOrder+1)^2,NUM_ELECTRODES);
 
 % expand all dc electrode potentials around RF null, save the coefficients
 % and regenerate the data if asked
-for el = 1:(NUM_ELECTRODES)
-  if data.trapConfiguration.electrodeMapping(el,2)
+for el = 1:NUM_ELECTRODES % Expand all the electrodes and  regenerate the potentials from the multipole coefficients
     multipoleDCVoltages = zeros(1,NUM_ELECTRODES);
     multipoleDCVoltages(el) = 1;
-    manualDCVoltages = zeros(1,NUM_ELECTRODES);
-    Vdc = dc_potential(data,multipoleDCVoltages,manualDCVoltages,E(1),E(2),E(3),x,y,z);
+    Vdc = dc_potential(data,multipoleDCVoltages,E(1),E(2),E(3),x,y,z);
     %plot_potential(Vdc,Irf,Jrf,Krf,data.grid,'1d plots',sprintf('EL. %i DC Potential',el),'V (Volt)');
     Q = spher_harm_exp(Vdc,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);                        % this is a column [Q1 Q2 ...]'
-    M1(:,el) = Q(1:(expansionOrder+1)^2);
-    %max(Q(2:(expansionOrder+1)^2))
+    M(:,el) = Q(1:(expansionOrder+1)^2);
     if regenerate,
-        if isfield(data.Simulation,['EL_DC' num2str(el)]),
-            data.Simulation.(['EL_DC' num2str(el)]) = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);
-            % old command 12-10-2013: eval(sprintf('datout.%s = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);',str));
-        end
+        fprintf('________regenerating EL_DC%i potential________\n',el);
+        data.Simulation.(['EL_DC' num2str(el)]) = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);
     end
-  end% was joined with elseif 04/28/2014
-  if data.trapConfiguration.manualElectrodes(el)% was elseif 04/28/2014
-    if regenerate,
-        data_loc = data;
-        data_loc.trapConfiguration.manualElectrodes(el) = 1;
-        multipoleDCVoltages = zeros(1,NUM_ELECTRODES);
-        manualDCVoltages = zeros(1,NUM_ELECTRODES);
-        multipoleDCVoltages(el)  = 1;
-        Vdc = dc_potential(data_loc,multipoleDCVoltages,manualDCVoltages,E(1),E(2),E(3),x,y,z);
-        %plot_potential(Vdc,Irf,Jrf,Krf,data.grid,'1d plots',sprintf('El. %i DC Potential',el),'V (Volt)');
-        Q = spher_harm_exp(Vdc,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);
-        data.Simulation.(['mEL_DC' num2str(el)]) = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);
-        % old command 12-10-2013: eval(sprintf('datout.%s = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);',str));  
-    end
-  end
 end
 
-fprintf(sprintf('expand_field: Size of the raw multipole coefficient matrix is (%i,%i).\n',size(M1,1),size(M1,2)));
-datout.trapConfiguration.multipoleCoefficients = vertcat(c*M1(1:9,:),M1(10:(expansionOrder+1)^2,:)); 
-fprintf('expand_field: Size of the resized multipole coefficient matrix is (%i,%i).\n',size(vertcat(c*M1(1:9,:),M1(10:(expansionOrder+1)^2,:)),1),size(vertcat(c*M1(1:9,:),M1(10:(expansionOrder+1)^2,:)),2));
-fprintf('expand_field: ended successfully.\n');
+fprintf(sprintf('expand_field: Size of the raw multipole coefficient matrix is (%i,%i).\n',size(M,1),size(M,2)));
+datout.trapConfiguration.multipoleCoefficients = vertcat(c*M(1:9,:),M(10:(expansionOrder+1)^2,:)); 
 print_underlined_message('stop_','expand_field');
 
 %%%%%%%%%%%%%%%%%%% Auxiliary functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -129,6 +111,5 @@ print_underlined_message('stop_','expand_field');
         end
         out = roundn(in,-p-4);       
     end
-
-
+ 
 end

@@ -44,9 +44,9 @@ nStart = data_in.trapConfiguration.nStart;
 nMatTot = data_in.trapConfiguration.nMatTot;
 NUM_AXIS = data_in.trapConfiguration.NUM_AXIS;
 NUM_ELECTRODES = data_in.trapConfiguration.NUM_ELECTRODES;
-electrodeMapping = data_in.trapConfiguration.electrodeMapping;
-manualElectrodes = data_in.trapConfiguration.manualElectrodes;
-NUM_USED_ELECTRODES = data_in.trapConfiguration.NUM_USED_ELECTRODES;
+%EC01 electrodeMapping = data_in.trapConfiguration.electrodeMapping;
+%EC01 manualElectrodes = data_in.trapConfiguration.manualElectrodes;
+%EC01 NUM_USED_ELECTRODES = data_in.trapConfiguration.NUM_USED_ELECTRODES;
 
 data = data_in;
 
@@ -153,12 +153,9 @@ for iterationNumber=nStart:nMatTot
     end
 
     %%%%%
-    %			PART II: organize the electrodes in Simulation according to the trap configurtation
-    %			this must become a seperate function
-    %			The DC electrodes are grouped in two categories: EL_DC (multipole controlled), and mEL_DC (manual voltage controlled)
+    %			PART II: organize the electrodes in Simulation 
     %%%%%
     clear DataFromTxt
-    %hard-codes to reorganize Simulation for specific electrode configuration
     if size(x,2)>size(x,1)
         Simulation.X = x;
         Simulation.Y = y;
@@ -171,29 +168,32 @@ for iterationNumber=nStart:nMatTot
        
     Simulation.grid = [xmin ymin zmin deltax deltay deltaz];
     Simulation.EL_RF = struct.EL_phi0;	% Need to edit this if you are using out of phase! layer1=DC1 etc if layer 2 is DC1 if +1
-    if (electrodeMapping(size(electrodeMapping,1),1)~=NUM_ELECTRODES)||(electrodeMapping(size(electrodeMapping,1),2)~=NUM_USED_ELECTRODES)
-	fprintf('import_data: There seems to be a problem with your mapping definition. Check electrodeMapping. \n');
-    end
+    % EC01if (electrodeMapping(size(electrodeMapping,1),1)~=NUM_ELECTRODES)||(electrodeMapping(size(electrodeMapping,1),2)~=NUM_USED_ELECTRODES)
+    % EC01    fprintf('import_data: There seems to be a problem with your mapping definition. Check electrodeMapping. \n');
+    % EC01end
     % initialize NUM_USED_DC electrodes
-    for iii=1:(NUM_USED_ELECTRODES)
+    for iii=1:NUM_ELECTRODES%EC01 (NUM_USED_ELECTRODES)
         Simulation.(['EL_DC' num2str(iii)]) = zeros(NUM_AXIS,NUM_AXIS,NUM_AXIS);
-        Simulation.(['mEL_DC' num2str(iii)]) = zeros(NUM_AXIS,NUM_AXIS,NUM_AXIS);
+        % EC01Simulation.(['mEL_DC' num2str(iii)]) = zeros(NUM_AXIS,NUM_AXIS,NUM_AXIS);
     end
     % add each electrode to the combination where it belongs. If electrodeMapping entry is 0, then the electrode is not used. The last electrode is the RF, and it is added by hand.
-    for iii=1:(NUM_ELECTRODES-1)
-	  if sign( electrodeMapping(iii,2) )
-	      Simulation.(['EL_DC' num2str(electrodeMapping(iii,2))]) = Simulation.(['EL_DC' num2str(electrodeMapping(iii,2))]) ...
-								+ struct.(['EL_phi' num2str(electrodeMapping(iii,1))]);
-	  elseif manualElectrodes(iii)
-	      Simulation.(['mEL_DC' num2str(iii)]) = Simulation.(['mEL_DC' num2str(iii)]) ...
-								+ struct.(['EL_phi' num2str(iii)]);
-	  end
+    for iii=1:(NUM_ELECTRODES)
+        Simulation.(['EL_DC' num2str(iii)]) = ...                           %EC01
+            Simulation.(['EL_DC' num2str(iii)]) + ...                       %EC01
+            struct.(['EL_phi' num2str(rem(iii,NUM_ELECTRODES))]);           %EC01
+	  %EC01if sign( electrodeMapping(iii,2) )
+	  %EC01    Simulation.(['EL_DC' num2str(electrodeMapping(iii,2))]) = Simulation.(['EL_DC' num2str(electrodeMapping(iii,2))]) ...
+      %EC01						+ struct.(['EL_phi' num2str(electrodeMapping(iii,1))]);
+	  %EC01elseif manualElectrodes(iii)
+	  %EC01    Simulation.(['mEL_DC' num2str(iii)]) = Simulation.(['mEL_DC' num2str(iii)]) ...
+	  %EC01							+ struct.(['EL_phi' num2str(iii)]);
+	  %EC01end
     end
-    if sign( electrodeMapping(NUM_ELECTRODES,2) ) % last, take care of the RF electrode
-        Simulation.(['EL_DC' num2str(electrodeMapping(NUM_ELECTRODES,2))]) = Simulation.EL_RF;
-    elseif manualElectrodes(NUM_ELECTRODES)
-        Simulation.(['mEL_DC' num2str(NUM_ELECTRODES)]) = Simulation.EL_RF;
-    end
+    %EC01if sign( electrodeMapping(NUM_ELECTRODES,2) ) % last, take care of the RF electrode
+    %EC01    Simulation.(['EL_DC' num2str(electrodeMapping(NUM_ELECTRODES,2))]) = Simulation.EL_RF;
+    %EC01elseif manualElectrodes(NUM_ELECTRODES)
+    %EC01    Simulation.(['mEL_DC' num2str(NUM_ELECTRODES)]) = Simulation.EL_RF;
+    %EC01end
     fprintf('Saving data to matDataPath:\n%s\n',[sprintf('%s',matDataPath), sprintf('%s', dataNames), '_',sprintf('%d',iterationNumber), '.mat']);
     if strcmp(platform,'octave')
         save ('-v7',[sprintf('%s',matDataPath), sprintf('%s', dataNames), '_', sprintf('%d',iterationNumber), '.mat'],'Simulation');

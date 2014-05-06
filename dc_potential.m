@@ -1,5 +1,6 @@
-function Vout = dc_potential(data,VMULT,VMAN,Ex,Ey,Ez,x,y,z)
-%function Vout = dc_potential(data,VMULT,VMAN,Ex,Ey,Ez,x,y,z)
+function Vout = dc_potential(data,V,Ex,Ey,Ez,x,y,z)
+%EC01function Vout = dc_potential(data,VMULT,VMAN,Ex,Ey,Ez,x,y,z)
+%EC01%function Vout = dc_potential(data,VMULT,VMAN,Ex,Ey,Ez,x,y,z)
 % calculate the dc potential if I give you the applied voltages and the stray field
 % data: 
 %   structure containing the voltages for all electrodes
@@ -21,16 +22,17 @@ function Vout = dc_potential(data,VMULT,VMAN,Ex,Ey,Ez,x,y,z)
 % 
 % Nikos, cleaned up June 2013
 
-    IMAN = data.trapConfiguration.manualElectrodes;
+    %EC01IMAN = data.trapConfiguration.manualElectrodes;
     NUM_ELECTRODES = data.trapConfiguration.NUM_ELECTRODES;
     Vout = zeros(size(data.Simulation.EL_DC1));  
-    for ii = 1:NUM_ELECTRODES
-        if IMAN(ii),
-            Vout = Vout + VMAN(ii)*data.Simulation.(['mEL_DC' num2str(ii)]);
-        end
-    end  
+    %EC01for ii = 1:NUM_ELECTRODES
+    %EC01    if IMAN(ii),
+    %EC01        Vout = Vout + VMAN(ii)*data.Simulation.(['mEL_DC' num2str(ii)]);
+    %EC01    end
+    %EC01end  
     for ii=1:NUM_ELECTRODES
-        Vout = Vout + VMULT(ii)*data.Simulation.(['EL_DC' num2str(ii)]);
+        %EC01Vout = Vout + VMULT(ii)*data.Simulation.(['EL_DC' num2str(ii)]);
+        Vout = Vout + V(ii)*data.Simulation.(['EL_DC' num2str(ii)]);
     end
     
     Vout = Vout-Ex*x-Ey*y-Ez*z;

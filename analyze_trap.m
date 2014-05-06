@@ -16,7 +16,7 @@ data = get_trapping_field(data,get_trapping_field_plot);
 data = expand_field(data);
 data = trap_knobs(data,trap_knobs_plot);
 
-set_voltages;
+data = set_voltages(data);
 dcplot = '1d plots';
 rfplot = '1d --plots';
 pseudpotplot = '1d plots';

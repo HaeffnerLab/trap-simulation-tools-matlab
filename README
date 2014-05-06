@@ -87,12 +87,12 @@ trap_knobs:
     Normally, you are done at this point, you can save the so-called data.trapConfiguration.multipoleControl array to a file 
     and import it to LabRad. As of 4/4/2014, the array is saved as Multipole_Control_File.txt, under the _post_processed folder
     
-set_dc:
+multipole_set_dc:
     You should not have to look inside this function, unless you are trying something new (and possibly inappropriate). 
-    set_dc takes as inputs multipole parameters or a set of Mathieu parameters, and produces an 1-D array with the voltages
-    you need to apply to all of the electrodes. The entries corresponding to multipole-controlled electrodes receive some 
-    values. If some electrodes are under manual control (per your definition in project_parameters) these are set to zero. 
-    You can add the values to these electrodes at a higher level (as in set_voltages)
+    multipole_set_dc takes as inputs multipole parameters or a set of Mathieu parameters, and produces an 1-D array with 
+    the voltages you need to apply to all of the electrodes. The entries corresponding to multipole-controlled electrodes 
+    receive some values. If some electrodes are under manual control (per your definition in project_parameters) these are 
+    set to zero. You can add the values to these electrodes at a higher level (as in set_voltages)
     
 post_process_trap:
     You should not have to look inside this function, unless you are trying something new (and possibly inappropriate). 

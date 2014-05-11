@@ -15,7 +15,7 @@ Ex = .0;                                                                   % Str
 Ey = .0;
 Ez = .0;
 U1 = .0;                                                                   % U1-U5 are the DC Quadrupoles that I want the trap to generate at the ion                                                                            % (valid if multipoleControls == true)
-U2 = 12.0; 
+U2 = 16.0; 
 U3 = .0;  
 U4 = .0; 
 U5 = .0;

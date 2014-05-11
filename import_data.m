@@ -1,5 +1,5 @@
-function trap = import_trap(trap_in)
-% function import_trap(trap_in)
+function trap =  import_data(trap_in)
+% function  import_data(trap_in)
 %
 % Imports bemsolver .txt trap to matlab .mat trap, creates the directory 
 % trapout.systemInformation.matDataPath, and saves the mat files in there.
@@ -8,7 +8,7 @@ function trap = import_trap(trap_in)
 % trap electrodes, the grid vectors, and the grid parameters are stored
 % as fields in the structure "Simulation"  
 %
-% import_trap.m can import multiple .txt files (see for loop). The number of
+%  import_data.m can import multiple .txt files (see for loop). The number of
 % files to be imported can be adjusted via nMatTot.
 %
 % nStart: index of the trap simulation file on which you want to start 
@@ -44,9 +44,6 @@ nStart = trap_in.Configuration.nStart;
 nMatTot = trap_in.Configuration.nMatTot;
 NUM_AXIS = trap_in.Configuration.NUM_AXIS;
 NUM_ELECTRODES = trap_in.Configuration.NUM_ELECTRODES;
-%EC01 electrodeMapping = trap_in.Configuration.electrodeMapping;
-%EC01 manualElectrodes = trap_in.Configuration.manualElectrodes;
-%EC01 NUM_USED_ELECTRODES = trap_in.Configuration.NUM_USED_ELECTRODES;
 
 trap = trap_in;
 
@@ -69,12 +66,12 @@ for i = 1:numel(simfiles)
     end 
 end
 
-print_underlined_message('start','import_trap');
+print_underlined_message('start',' import_data');
 if newestDirIndex    
     trap.systemInformation.matDataPath = [simulationDirectory,simfiles(newestDirIndex).name, '/'];%%%out
     fprintf('Recent simulation directory already exists in simulation directory:\n');
     fprintf(sprintf('%s\nSkipping txt->mat conversion.\n',matDataPath));
-    print_underlined_message(' stop','import_trap');
+    print_underlined_message(' stop',' import_data');
     return
 end
 
@@ -127,7 +124,6 @@ for iterationNumber=nStart:nMatTot
                 ub = NUM_AXIS^3*el + NUM_AXIS^2*i + NUM_AXIS *j +NUM_AXIS; %upper bound .
                 struct.(['EL_phi' num2str(el)])(i+1,j+1,1:NUM_AXIS)=DataFromTxt(lb:ub, 4);
                 
-                % if loop by Gebhard, Oct 2010
                 if (size(DataFromTxt,2)>4)
                     % i.e. Ex,Ey,Ez are calculated in bemsolver (old
                     % version), fast
@@ -168,33 +164,17 @@ for iterationNumber=nStart:nMatTot
        
     Simulation.grid = [xmin ymin zmin deltax deltay deltaz];
     Simulation.EL_RF = struct.EL_phi0;	% Need to edit this if you are using out of phase! layer1=DC1 etc if layer 2 is DC1 if +1
-    % EC01if (electrodeMapping(size(electrodeMapping,1),1)~=NUM_ELECTRODES)||(electrodeMapping(size(electrodeMapping,1),2)~=NUM_USED_ELECTRODES)
-    % EC01    fprintf('import_trap: There seems to be a problem with your mapping definition. Check electrodeMapping. \n');
-    % EC01end
     % initialize NUM_USED_DC electrodes
-    for iii=1:NUM_ELECTRODES%EC01 (NUM_USED_ELECTRODES)
+    for iii=1:NUM_ELECTRODES
         Simulation.(['EL_DC' num2str(iii)]) = zeros(NUM_AXIS,NUM_AXIS,NUM_AXIS);
-        % EC01Simulation.(['mEL_DC' num2str(iii)]) = zeros(NUM_AXIS,NUM_AXIS,NUM_AXIS);
     end
-    % add each electrode to the combination where it belongs. If electrodeMapping entry is 0, then the electrode is not used. The last electrode is the RF, and it is added by hand.
+    % add each electrode.
     for iii=1:(NUM_ELECTRODES)
-        Simulation.(['EL_DC' num2str(iii)]) = ...                           %EC01
-            Simulation.(['EL_DC' num2str(iii)]) + ...                       %EC01
-            struct.(['EL_phi' num2str(rem(iii,NUM_ELECTRODES))]);           %EC01
-	  %EC01if sign( electrodeMapping(iii,2) )
-	  %EC01    Simulation.(['EL_DC' num2str(electrodeMapping(iii,2))]) = Simulation.(['EL_DC' num2str(electrodeMapping(iii,2))]) ...
-      %EC01						+ struct.(['EL_phi' num2str(electrodeMapping(iii,1))]);
-	  %EC01elseif manualElectrodes(iii)
-	  %EC01    Simulation.(['mEL_DC' num2str(iii)]) = Simulation.(['mEL_DC' num2str(iii)]) ...
-	  %EC01							+ struct.(['EL_phi' num2str(iii)]);
-	  %EC01end
+        Simulation.(['EL_DC' num2str(iii)]) = ...                           
+            Simulation.(['EL_DC' num2str(iii)]) + ...                       
+            struct.(['EL_phi' num2str(rem(iii,NUM_ELECTRODES))]);           
     end
-    %EC01if sign( electrodeMapping(NUM_ELECTRODES,2) ) % last, take care of the RF electrode
-    %EC01    Simulation.(['EL_DC' num2str(electrodeMapping(NUM_ELECTRODES,2))]) = Simulation.EL_RF;
-    %EC01elseif manualElectrodes(NUM_ELECTRODES)
-    %EC01    Simulation.(['mEL_DC' num2str(NUM_ELECTRODES)]) = Simulation.EL_RF;
-    %EC01end
-    fprintf('Saving trap to matDataPath:\n%s\n',[sprintf('%s',matDataPath), sprintf('%s', DataNames), '_',sprintf('%d',iterationNumber), '.mat']);
+     fprintf('Saving trap to matDataPath:\n%s\n',[sprintf('%s',matDataPath), sprintf('%s', DataNames), '_',sprintf('%d',iterationNumber), '.mat']);
     if strcmp(platform,'octave')
         save ('-v7',[sprintf('%s',matDataPath), sprintf('%s', DataNames), '_', sprintf('%d',iterationNumber), '.mat'],'Simulation');
     else
@@ -202,13 +182,16 @@ for iterationNumber=nStart:nMatTot
     end
 end
 % plot the RF potential
-Ef = Simulation.EL_RF;%Simulation.(['EL_DC' num2str(electrodeMapping(iii+1,1))]);
+Ef = Simulation.EL_RF;
 for a = 1:NUM_AXIS
     for b = 1:NUM_AXIS
         E(a,b) = Ef(a,b,NUM_AXIS);
     end
 end
-figure; surface(x,y,E); title('import_ trap: Plotting the RF potential');
-print_underlined_message(' stop','import_trap');
+figure; 
+imagesc(x,y,E'); 
+title('import_ trap: Plotting the RF potential');
+pause;
+print_underlined_message(' stop',' import_data');
 
 

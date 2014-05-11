@@ -61,6 +61,7 @@ colormap(cool);
 title('trap_ knobs: Multipole coefficients (Ex...U5) for each trap electrode. cyan:(-) / red:(+)');
 pause;
 C = zeros(numUsedMultipoles,size(allM,2));
+err = zeros(numUsedMultipoles,numUsedMultipoles);
 usedM = zeros(numUsedMultipoles,size(allM,2));
 usmm = 1;
 for mm = 1:numTotMultipoles % keep only the multipoles you specified in usedMultipoles
@@ -74,19 +75,10 @@ for ii=1:numUsedMultipoles
         multipoleBasisVector(ii) = 1;
         singleMultipoleControl = usedM\multipoleBasisVector;
         multipoleOutputVector = usedM*singleMultipoleControl; 
-        err = multipoleBasisVector-multipoleOutputVector;
-        if plotOption
-            plot(err); 
-            title(sprintf('trap_ knobs: difference between set multipoles and achieved multipoles.\nIntended output at multipole %i',ii));
-            pause;
-            plotN(expand_matrix_el(singleMultipoleContro, NUM_ELECTRODES, electrodeMapping, manualElectrodes));
-            pause;
-        end
+        err(ii,:) = (multipoleBasisVector-multipoleOutputVector)';
         C(ii,:) = singleMultipoleControl';
 end
-
 K = null(usedM);
-
 if regularize
     for ii = 1:numUsedMultipoles
         Cv = C(ii,:)';
@@ -99,12 +91,24 @@ if debug
 end
 C = expand_matrix_mult(C,numTotMultipoles,usedMultipoles);
 C = expand_matrix_el(C, NUM_ELECTRODES, electrodeMapping, manualElectrodes); 
+if plotOption
+    for ii = 1:numUsedMultipoles
+        if usedMultipoles(ii)
+            plot(err(ii,:)); 
+            title(sprintf('trap_ knobs: difference between set multipoles and achieved multipoles. Intended output is at multipole %i',ii));
+            pause;
+            plotN(C(ii,:),sprintf('trap_ knobs: voltages on the trap for multipole %i',ii));
+            pause;
+        end
+    end
+end
 
 datout.Configuration.multipoleKernel = K;
 datout.Configuration.multipoleControl = C';
 print_underlined_message(' stop','trap_knobs');
 
 %%%%%%%%%%%%%%%%%%% Auxiliary functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     function RM = compact_matrix(MM, NUM_ELECTRODES,numMultipoles, electrodeMap, manualEl) 
         % multipole compaction operation: combine paired electrodes and remove
         % manually controlled electrodes form multipoleCoefficients matrix

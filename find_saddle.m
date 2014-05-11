@@ -1,5 +1,5 @@
 function [Is Js Ks]=find_saddle(A,X,Y,Z,dim,Z0,varargin)
-% [Is Js Ks]=find_saddle(A,grid,dim,Z0,varargin)
+% [Is Js Ks]=find_saddle(A,X,Y,Z,dim,Z0,varargin)
 % returns the indices of the local extremum or saddle point of the scalar A. 
 % A is  stored as  a MxNxP matrix if dim==3 and as a MxN matrix if dim==2.
 % Z0 is the Z axis value on which the saddle point is evaluated, if dim==2.

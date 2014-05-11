@@ -22,16 +22,9 @@ function Vout = dc_potential(trap,V,Ex,Ey,Ez,x,y,z)
 % 
 % Nikos, cleaned up June 2013
 
-    %EC01IMAN = trap.Configuration.manualElectrodes;
     NUM_ELECTRODES = trap.Configuration.NUM_ELECTRODES;
     Vout = zeros(size(trap.Simulation.EL_DC1));  
-    %EC01for ii = 1:NUM_ELECTRODES
-    %EC01    if IMAN(ii),
-    %EC01        Vout = Vout + VMAN(ii)*trap.Simulation.(['mEL_DC' num2str(ii)]);
-    %EC01    end
-    %EC01end  
     for ii=1:NUM_ELECTRODES
-        %EC01Vout = Vout + VMULT(ii)*trap.Simulation.(['EL_DC' num2str(ii)]);
         Vout = Vout + V(ii)*trap.Simulation.(['EL_DC' num2str(ii)]);
     end
     

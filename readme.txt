@@ -125,5 +125,3 @@ To Do:
 * Join import_data functionality with the now defunct script for importing data from CPO
 
 * Change the length scales to micron, but keep mm for the E and U
-
-* Internally rescale to geometric mean for spher_harm_exp

@@ -9,7 +9,7 @@
 
 get_trapping_field_plot = false;
 trap_knobs_plot = false;
-trap = project_parameters;
+trap = project_parameters; 
 trap = import_data(trap);
 trap = get_trapping_field(trap,get_trapping_field_plot);
 trap = expand_field(trap);
@@ -17,7 +17,7 @@ trap = trap_knobs(trap,trap_knobs_plot);
 
 trap = set_voltages(trap);
 dcplot = '1d plots';
-rfplot = '1d --plots';
+rfplot = '1d plots';
 pseudpotplot = '1d plots';
 trappotplot = '1d plots';
 trap = post_process_trap(trap,'analyzeTrap',dcplot,rfplot,pseudpotplot,trappotplot);

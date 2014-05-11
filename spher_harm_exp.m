@@ -34,7 +34,8 @@ s=size(V); nx=s(1); ny=s(2); nz=s(3); %size(V)
 
 x=reshape(x,1,nx*ny*nz); y=reshape(y,1,nx*ny*nz); z=reshape(z,1,nx*ny*nz);
 r=sqrt(x.^2+y.^2+z.^2); rt=sqrt(x.^2+y.^2); theta=atan2(rt,z); phi=atan2(y,x);
-scale = max(max(max(r)));
+dl = X(2)-X(1);
+scale = sqrt(max(max(max(r)))*dl);
 r = r/scale;
 
 % make the spherical harmonic matrix in sequence of [Y00 Y10 Y11c Y11s Y20 Y21c Y21s...]

@@ -19,8 +19,6 @@ Xs = 0; Ys = 0; Zs = 0;
 
 if dim==3,
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Initialize 
-    %limits = [min(X) max(X) min(Y) max(Y) min(Z) max(Z)];
-    %gridsize=[X(2)-X(1) Y(2)-Y(1) Z(2)-Z(1)];
     grid = [X(1) Y(1) Z(1) X(2)-X(1) Y(2)-Y(1) Z(2)-Z(1)];
     [I J K] = find_saddle(V,X,Y,Z,3,Z0,'exact_saddle',true);
     if (I<3)||(I>size(V,1)-2), 
@@ -38,14 +36,10 @@ if dim==3,
   
     A = V(I-2:I+2,J-2:J+2,K-2:K+2); 
     xo = X(I); yo = Y(J); zo = Z(K);
-    %limits = [X(I-2) X(I+2) Y(J-2) Y(J+2) Z(K-2) Z(K+2)];
-    %gridsize=[(limits(2)-limits(1))/4 (limits(4)-limits(3))/4
-    %(limits(6)-limits(5))/4];
     Xn = double(X(I-2:I+2)); Yn = double(Y(J-2:J+2)); Zn = double(Z(K-2:K+2));
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Minimize
     
-    %h = @D;
     r = fminunc(@(r) sum_of_e_field (r,V,X,Y,Z),[xo, yo, zo]);
 
     Xs = r(1); 
@@ -60,12 +54,9 @@ if dim==2,
     if numel(size(V))==3,
         K = find(Z<Z0,1,'last');                                           % Extrapolate to value Z0
         if K==size(Z,2), return; end;
-        %K 
         v1 = V(:,:,K);
         v2 = V(:,:,K+1);
         V2 = v1+(v2-v1)*(Z0-Z(K))/(Z(K+1)-Z(K));
-    %limits = [min(X) max(X) min(Y) max(Y)];
-    %gridsize=[X(2)-X(1) Y(2)-Y(1)];
     end
     [I J] = find_saddle(V2,X,Y,Z,2,Z0,'exact_saddle',true);
     if (I<3)||(I>size(V,1)-2), 
@@ -80,8 +71,6 @@ if dim==2,
         A(:,:,k) = V2(I-4:I+4,J-4:J+4);
     end
     xo = X(I); yo = Y(J); z0 = Z0;
-    %limits = [X(I-2) X(I+2) Y(J-2) Y(J+2) Z(K-2) Z(K+2)];
-    %gridsize=[(limits(2)-limits(1))/4 (limits(4)-limits(3))/4 (limits(6)-limits(5))/4];
     Xn = X(I-4:I+4); Yn = Y(J-4:J+4); Zn = Z(K-4:K+4);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Minimize

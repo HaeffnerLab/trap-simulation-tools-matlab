@@ -129,11 +129,10 @@ if plottingOption,
     for el = 1:NUM_ELECTRODES
         plot_potential(trap.Simulation.(['EL_DC' num2str(el)]),...
             midIndex,midIndex,midIndex,...
-            trap.Simulation.grid,'1d plots',sprintf('%i-th electrode potential',el),'Static potential (V)','','');
-        pause;
+            trap.Simulation.grid,'1d plots',sprintf('get trapping field: %i-th electrode potential',el),'Static potential (V)','','');
     end
  	plot(trap.Simulation.Z,'--*'); 
- 	title('get_trapping_field.m check: you will see a straight line if the trap was generated successfully.');
+ 	title('get_trapping_field: you will see a straight line if the trap was generated successfully.');
     pause
 end
 print_underlined_message(' stop','get_trapping_field');

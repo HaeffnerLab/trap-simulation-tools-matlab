@@ -98,6 +98,7 @@ else
     else
         d = load([sprintf('%s',path),sprintf('%s',DataNames),sprintf('_%i.mat',I)]); 
         trap.Simulation = d.Simulation;
+        plot_el(plottingOption);
         print_underlined_message(' stop','get_trapping_field');
         return
     end
@@ -123,16 +124,24 @@ if ~noStitch
     trap.Simulation.grid = [min(trap.Simulation.X) min(trap.Simulation.Y) min(trap.Simulation.Z) ...
                             Simulation1.grid(4) Simulation1.grid(5) Simulation1.grid(6)];
 end
-    
-if plottingOption,
-    midIndex = round(numel(trap.Simulation.Z)/2); 
-    for el = 1:NUM_ELECTRODES
-        plot_potential(trap.Simulation.(['EL_DC' num2str(el)]),...
-            midIndex,midIndex,midIndex,...
-            trap.Simulation.grid,'1d plots',sprintf('get trapping field: %i-th electrode potential',el),'Static potential (V)','','');
-    end
- 	plot(trap.Simulation.Z,'--*'); 
- 	title('get_trapping_field: you will see a straight line if the trap was generated successfully.');
-    pause
-end
+plot_el(plottingOption);    
+plot(trap.Simulation.Z,'--*'); 
+title('get_trapping_field: you will see a straight line if the trap was generated successfully.');
+pause
+
 print_underlined_message(' stop','get_trapping_field');
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% AUX
+    function plot_el(plottingOpt)
+        if plottingOpt,
+            midIndex = round(numel(trap.Simulation.Z)/2); 
+            for el = 1:NUM_ELECTRODES
+                plot_potential(trap.Simulation.(['EL_DC' num2str(el)]),...
+                    midIndex,midIndex,midIndex,...
+                    trap.Simulation.grid,'1d plots',sprintf('get trapping field: %i-th electrode potential',el),'Static potential (V)','','');
+            end
+        end
+    end
+
+end

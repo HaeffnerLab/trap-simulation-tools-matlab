@@ -20,5 +20,5 @@ A(:,51:60) = V(N)*ones(10*(N-2)/2,10);
 % Center
 A(:,41:50) = V(N-1)*ones(10*(N-2)/2,10);
 mesh(A);
-axis([0 size(A,1) 0 size(A,2) min(0,1.2*min(V)) max(0,1.2*max(V))]);
+%axis([0 size(A,1) 0 size(A,2) min(0,1.2*min(V)) max(0,1.2*max(V))]);
 title(titleString);

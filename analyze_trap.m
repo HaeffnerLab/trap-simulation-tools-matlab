@@ -9,7 +9,7 @@
 
 get_trapping_field_plot = false;
 trap_knobs_plot = false;
-trap = project_parameters; 
+trap = project_parameters_synth; 
 trap = import_data(trap);
 trap = get_trapping_field(trap,get_trapping_field_plot);
 trap = expand_field(trap);

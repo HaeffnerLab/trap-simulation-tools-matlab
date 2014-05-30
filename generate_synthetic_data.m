@@ -21,11 +21,11 @@ multipoleCoeff = [0 0 0 0 0 0 0 0 0 0 0 0 0 0; ... Potential offset
                   0 0 0 0 1 0 0 0 1 1 1 0 0 0; ... U2 = (2z^2-x^2-y^2)/2
                   0 0 0 0 0 1 0 0 1 0 0 1 1 0; ... U3 = xy
                   0 0 0 0 0 0 1 0 0 1 0 1 0 1; ... U4 = yz
-                  0 0 0 0 0 0 0 1 0 0 1 0 1 1 ];% U5 = xz
+                  0 0 0 0 0 0 0 1 0 0 1 0 1 1 ]; % U5 = xz
 
 scale = 1/1000;                                 % this is for conversion from mm to micron
 NUM_AXIS = 21;                                  % points per axis
-grid = [-10 -10 -10 1 1 1];                  % Xmin Ymin Zmin dX dY dZ
+grid = [-10 -10 -10 1 1 1];                  % Xmin Ymin Zmin dX dY dZ, in micron
 % in what follows, generate the synthetic potentials and write to a text
 % file. Use for loops to avoid ambiguities with the vectorized
 % implementations in Matlab. The point of this excercise is not speed, but
@@ -38,6 +38,9 @@ for el = 1:NUM_ELECTRODES
         for z = grid(3):grid(6):grid(3)+(NUM_AXIS-1)*grid(6)
             for y = grid(2):grid(5):grid(2)+(NUM_AXIS-1)*grid(5)
                 v = potential_from_multipoles(x,y,z,multipoleCoeff(:,el),scale);
+                if el == 1 % remember that the RF electroide is the first on the BEM solver list
+                    v = v+scale^3*15*(y^3-3*x^2*y);
+                end
                 s = [sprintf('%3.1f ', x), sprintf('%3.1f ', z), sprintf('%3.1f ', y), sprintf('%10.8f\n', v)];
                 fprintf(f_to,s);
             end

@@ -28,6 +28,8 @@ for ii = 1:trap.Configuration.NUM_ELECTRODES
     end
 end
 
+trap_out.Instance.driveAmplitude = 1000;                         % Applied RF amplitude for post_process_trap analysis
+trap_out.Instance.driveFrequency = 20e6;                         % RF frequency for post_process_trap analysis
 trap_out.Instance.dcVoltages = el;
 trap_out.Instance.E_in = [Ex Ey Ez];
 trap_out.Instance.U_DC_in = [U1 U2 U3 U4 U5]; 

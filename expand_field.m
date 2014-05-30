@@ -32,18 +32,7 @@ Ycorrection = trap.Configuration.Ycorrection;
 position = trap.Configuration.trappingPosition;
 expansionOrder = trap.Configuration.expansionOrder;
 NUM_ELECTRODES = trap.Configuration.NUM_ELECTRODES;
-if isfield(trap.Configuration,'regeneratePotentialsCompleted')
-    if regeneratePotentialsCompleted
-        regenerate = false;
-    elseif trap.Configuration.regeneratePotentials % in case the process was interrupted previously
-        regenerate = true; 
-    else
-        regenerate = false;% do nothing
-    end
-else
-    regenerate = trap.Configuration.regeneratePotentials;
-end
-regenerateCounter = 0;
+regenerate = trap.Configuration.regeneratePotentials;
 
 fprintf('expand_field: Correction of XRF: %f mm.\n',Xcorrection);
 fprintf('expand_field: Correction of YRF: %f mm.\n',Ycorrection);
@@ -73,7 +62,6 @@ datout.Configuration.thetarf = 45*(sign(Qrf(9)))-90*atan((3*Qrf(8))/(3*Qrf(9)))/
 if regenerate
     fprintf('________regenerating the RF potential________\n');
     datout.Simulation.EL_RF = spher_harm_cmp(Qrf,Xrf,Yrf,Zrf,expansionOrder,X,Y,Z);
-    regenerateCounter = regenerateCounter+1;
 end
 
 E = [0 0 0];
@@ -100,24 +88,11 @@ for el = 1:NUM_ELECTRODES % Expand all the electrodes and  regenerate the potent
     if regenerate,
         fprintf('________regenerating EL_DC%i potential________\n',el);
         trap.Simulation.(['EL_DC' num2str(el)]) = spher_harm_cmp(Q,Xrf+Xcorrection,Yrf+Ycorrection,Zrf,ord(el),X,Y,Z);
-        regenerateCounter = regenerateCounter+1;
     end
 end
 
 fprintf(sprintf('expand_field: Size of the raw multipole coefficient matrix is (%i,%i).\n',size(M,1),size(M,2)));
 datout.Configuration.multipoleCoefficients = vertcat(c*M(1:9,:),M(10:(expansionOrder+1)^2,:)); 
-if regenerate
-    if regenerateCounter == NUM_ELECTRODES+1 % the RF is regenerated twice...
-        datout.Configuration.regeneratePotentialsCompleted = true;
-    else
-        fprintf('Something went wrong with regenerating the potentials from the harmonic expansions.\n');
-        datout.Configuration.regeneratePotentialsCompleted = false;
-    end
-else
-   fprintf('Skipped regenerating the potentials from the harmonic expansions.\n');
-   fprintf('Run expand_field after switching regeneratePotentials to true.\n');
-   datout.Configuration.regeneratePotentialsCompleted = false; 
-end
 print_underlined_message(' stop','expand_field');
 
 %%%%%%%%%%%%%%%%%%% Auxiliary functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

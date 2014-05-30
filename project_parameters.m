@@ -121,7 +121,9 @@ regeneratePotentials = true;                                                    
                                                                            % from the harmonic expansion coefficients                                                                        
 driveAmplitude = 100;                                                      %%%% used in post_process_trap
 driveFrequency = 40e6;                                                     %%%% used in post_process_trap
-                                                                           
+                                                                           % These two parameters (RF amplitude and drive frequency) may be overwritten in set_voltages
+                                                                           % Always check!
+                                                                                                                                                   
 trap = {};                                                                 % trap stores all information about the trap
 trap.systemInformation.platform = platform;                                % This is used everywhere else. The rest is just redefinitions
 trap.systemInformation.timestarted = timestarted;
